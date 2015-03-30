@@ -13,8 +13,8 @@
 #pragma comment( lib, "d3dx11d.lib" )
 #pragma comment( lib, "d3dcompiler.lib" )
 
-#define szWindowClass	TEXT("BoxRender")
-#define szTitle			TEXT("BoxRender")
+#define szWindowClass   TEXT("BoxRender")
+#define szTitle         TEXT("BoxRender")
 
 
 //--------------------------------------------------------------------------------------
@@ -53,8 +53,7 @@ ID3D11InputLayout*      g_pVertexLayout = NULL;
 ID3D11Buffer*           g_pVertexBuffer = NULL;
 ID3D11Buffer*           g_pIndexBuffer = NULL;
 ID3D11Buffer*           g_pConstantBuffer = NULL;
-XMMATRIX                g_World1;
-XMMATRIX                g_World2;
+XMMATRIX                g_World;
 XMMATRIX                g_View;
 XMMATRIX                g_Projection;
 
@@ -88,7 +87,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmd
 
     MSG	msg = { 0 };
     while (WM_QUIT != msg.message)
-	{
+    {
         if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
         {
             TranslateMessage(&msg);
@@ -98,9 +97,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmd
         {
             Render();
         }
-	}
+    }
     CleanupDevice();
-	return (int)msg.wParam;
+    return (int)msg.wParam;
 }
 
 
@@ -136,19 +135,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 {
     // Register class
-	WNDCLASSEX wcex;
-	wcex.cbSize		    = sizeof(WNDCLASSEX);
-	wcex.style		    = CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= (WNDPROC)WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInstance;
-	wcex.hIcon	        = LoadIcon(hInstance, IDI_APPLICATION);
-	wcex.hIconSm        = LoadIcon(hInstance, IDI_APPLICATION);
-	wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)GetStockObject(WHITE_BRUSH);
-	wcex.lpszMenuName	= NULL;
-	wcex.lpszClassName	= szWindowClass;
+    WNDCLASSEX wcex;
+    wcex.cbSize		    = sizeof(WNDCLASSEX);
+    wcex.style		    = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc	= (WNDPROC)WndProc;
+    wcex.cbClsExtra		= 0;
+    wcex.cbWndExtra		= 0;
+    wcex.hInstance		= hInstance;
+    wcex.hIcon	        = LoadIcon(hInstance, IDI_APPLICATION);
+    wcex.hIconSm        = LoadIcon(hInstance, IDI_APPLICATION);
+    wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
+    wcex.hbrBackground	= (HBRUSH)GetStockObject(WHITE_BRUSH);
+    wcex.lpszMenuName	= NULL;
+    wcex.lpszClassName	= szWindowClass;
     if (!RegisterClassEx(&wcex))
         return E_FAIL;
 
@@ -456,8 +455,7 @@ HRESULT InitDevice()
         return hr;
 
     // Initialize the world matrix
-    g_World1 = XMMatrixIdentity();
-    g_World2 = XMMatrixIdentity();
+    g_World = XMMatrixIdentity();
 
     // Initialize the view matrix
     XMVECTOR Eye = XMVectorSet(0.0f, 1.0f, -5.0f, 0.0f);
@@ -515,7 +513,7 @@ void Render()
     }
 
     // Cube: Rotate around the origin
-    g_World1 = XMMatrixRotationY(t) * XMMatrixRotationX(t);
+    g_World = XMMatrixRotationY(t) * XMMatrixRotationX(t);
 
     //
     // Clear the back buffer
@@ -532,7 +530,7 @@ void Render()
     // Update variables for the cube
     //
     ConstantBuffer cb1;
-    cb1.mWorld = XMMatrixTranspose(g_World1);
+    cb1.mWorld = XMMatrixTranspose(g_World);
     cb1.mView = XMMatrixTranspose(g_View);
     cb1.mProjection = XMMatrixTranspose(g_Projection);
     g_pImmediateContext->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb1, 0, 0);
