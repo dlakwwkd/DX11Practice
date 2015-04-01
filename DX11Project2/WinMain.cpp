@@ -50,7 +50,7 @@ ID3D11DepthStencilView* g_pDepthStencilView = NULL;
 ID3D11VertexShader*     g_pVertexShader = NULL;
 ID3D11PixelShader*      g_pPixelShader = NULL;
 ID3D11InputLayout*      g_pVertexLayout = NULL;
-ID3D11Buffer*           g_pVertexBuffer = NULL;
+ID3D11Buffer*           g_pVertexBuffer = NULL; // ID3D11Buffer : 모든 버퍼 공통 인터페이스
 ID3D11Buffer*           g_pIndexBuffer = NULL;
 ID3D11Buffer*           g_pConstantBuffer = NULL;
 XMMATRIX                g_World;
@@ -190,8 +190,11 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
 #endif
 
     ID3DBlob* pErrorBlob;
-    hr = D3DX11CompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel,
-        dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
+    hr = D3DX11CompileFromFile(
+        szFileName, NULL, NULL,                     // shader 파일 설정
+        szEntryPoint, szShaderModel, dwShaderFlags, // 컴파일 설정
+        0, NULL,                                    // 쉐이더 옵션
+        ppBlobOut, &pErrorBlob, NULL);              // 리턴
     if (FAILED(hr))
     {
         if (pErrorBlob != NULL)
@@ -326,7 +329,7 @@ HRESULT InitDevice()
     vp.TopLeftY = 0; 	        // 그리기 시작 원점 y
     g_pImmediateContext->RSSetViewports(1, &vp);
 
-
+    
     // Compile the vertex shader
     ID3DBlob* pVSBlob = NULL;
     hr = CompileShaderFromFile(L"BoxRender.fx", "VS", "vs_4_0", &pVSBlob);
@@ -338,7 +341,10 @@ HRESULT InitDevice()
     }
 
     // Create the vertex shader
-    hr = g_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader);
+    hr = g_pd3dDevice->CreateVertexShader(
+        pVSBlob->GetBufferPointer(),
+        pVSBlob->GetBufferSize(),
+        NULL, &g_pVertexShader);        // 리턴(정점 셰이더)
     if (FAILED(hr))
     {
         pVSBlob->Release();
@@ -354,8 +360,10 @@ HRESULT InitDevice()
     UINT numElements = ARRAYSIZE(layout);
 
     // Create the input layout
-    hr = g_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
-        pVSBlob->GetBufferSize(), &g_pVertexLayout);
+    hr = g_pd3dDevice->CreateInputLayout(layout, numElements,
+        pVSBlob->GetBufferPointer(),
+        pVSBlob->GetBufferSize(),
+        &g_pVertexLayout);
     pVSBlob->Release();
     if (FAILED(hr))
         return hr;
@@ -393,14 +401,18 @@ HRESULT InitDevice()
     };
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex)* 8;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
+    bd.Usage = D3D11_USAGE_DEFAULT;             // 버퍼 사용 방식
+    bd.ByteWidth = sizeof(SimpleVertex)* 8;     // 버퍼 크기
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;    // 파이프라인에 연결되는 버퍼 형태
+    bd.CPUAccessFlags = 0;                      // CPU접근 flag, 일반적으로 GPU를 사용하기 때문에 0을 쓴다.
+    
     D3D11_SUBRESOURCE_DATA InitData;
     ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = vertices;
-    hr = g_pd3dDevice->CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
+    InitData.pSysMem = vertices;        // 초기화하기 위한 버퍼 배열 포인터
+    hr = g_pd3dDevice->CreateBuffer(
+        &bd,                            // 생성할 버퍼의 정보를 담은 구조체
+        &InitData,                      // 버퍼 초기화시 필요한 데이터
+        &g_pVertexBuffer);              // 생성된 버퍼
     if (FAILED(hr))
         return hr;
 
@@ -430,8 +442,8 @@ HRESULT InitDevice()
         6, 4, 5,
         7, 4, 6,
     };
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(WORD)* 36;        // 36 vertices needed for 12 triangles in a triangle list
+    bd.Usage = D3D11_USAGE_DEFAULT;     // CPU 접근 불가, 생성후 변경 불가, GPU만 접근 가능
+    bd.ByteWidth = sizeof(indices);     // 크기
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = indices;
@@ -464,7 +476,10 @@ HRESULT InitDevice()
     g_View = XMMatrixLookAtLH(Eye, At, Up);
 
     // Initialize the projection matrix
-    g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, width / (FLOAT)height, 0.01f, 100.0f);
+    g_Projection = XMMatrixPerspectiveFovLH(
+        XM_PIDIV2,              // Pi
+        width / (FLOAT)height,  // aspect ratio
+        0.01f, 100.0f);         // near plane, far plane
 
     return S_OK;
 }
@@ -513,7 +528,12 @@ void Render()
     }
 
     // Cube: Rotate around the origin
-    g_World = XMMatrixRotationY(t) * XMMatrixRotationX(t);
+    float scaleValue = sinf(t) + 1;
+    float moveValue = cosf(t)*10.0f;
+    XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
+    XMMATRIX rotate = XMMatrixRotationZ(t);
+    XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 10.0f);
+    g_World = scale * rotate * position;
 
     //
     // Clear the back buffer
@@ -524,7 +544,11 @@ void Render()
     //
     // Clear the depth buffer to 1.0 (max depth)
     //
-    g_pImmediateContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    g_pImmediateContext->ClearDepthStencilView(
+        g_pDepthStencilView,    // Clear target
+        D3D11_CLEAR_DEPTH,      // Clear flag (depth, stencil)
+        1.0f,                   // depth buffer 지울 때 채울값
+        0);                     // stencil buffer 지울 때 초기값
 
     //
     // Update variables for the cube
