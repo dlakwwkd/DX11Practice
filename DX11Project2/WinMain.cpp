@@ -1,4 +1,4 @@
-#include <windows.h>
+ï»¿#include <windows.h>
 #include <dxerr.h>
 #include <dxgi.h>
 #include <d3d11.h>
@@ -18,7 +18,7 @@
 
 
 //--------------------------------------------------------------------------------------
-// ±¸Á¶Ã¼
+// êµ¬ì¡°ì²´
 //--------------------------------------------------------------------------------------
 struct SimpleVertex
 {
@@ -35,7 +35,7 @@ struct ConstantBuffer
 
 
 //--------------------------------------------------------------------------------------
-// Àü¿ª º¯¼ö
+// ì „ì—­ ë³€ìˆ˜
 //--------------------------------------------------------------------------------------
 HINSTANCE               g_hInst = NULL;
 HWND                    g_hWnd = NULL;
@@ -50,7 +50,7 @@ ID3D11DepthStencilView* g_pDepthStencilView = NULL;
 ID3D11VertexShader*     g_pVertexShader = NULL;
 ID3D11PixelShader*      g_pPixelShader = NULL;
 ID3D11InputLayout*      g_pVertexLayout = NULL;
-ID3D11Buffer*           g_pVertexBuffer = NULL; // ID3D11Buffer : ¸ğµç ¹öÆÛ °øÅë ÀÎÅÍÆäÀÌ½º
+ID3D11Buffer*           g_pVertexBuffer = NULL; // ID3D11Buffer : ëª¨ë“  ë²„í¼ ê³µí†µ ì¸í„°í˜ì´ìŠ¤
 ID3D11Buffer*           g_pIndexBuffer = NULL;
 ID3D11Buffer*           g_pConstantBuffer = NULL;
 XMMATRIX                g_World;
@@ -59,7 +59,7 @@ XMMATRIX                g_Projection;
 
 
 //--------------------------------------------------------------------------------------
-// Àü¹æ ¼±¾ğ
+// ì „ë°© ì„ ì–¸
 //--------------------------------------------------------------------------------------
 LRESULT CALLBACK        WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 HRESULT                 InitWindow(HINSTANCE hInstance, int nCmdShow);
@@ -69,7 +69,7 @@ void                    Render();
 
 
 //--------------------------------------------------------------------------------------
-// ¸ŞÀÎ
+// ë©”ì¸
 //--------------------------------------------------------------------------------------
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
@@ -104,7 +104,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmd
 
 
 //--------------------------------------------------------------------------------------
-// ¸Ş½ÃÁö Ã³¸®
+// ë©”ì‹œì§€ ì²˜ë¦¬
 //--------------------------------------------------------------------------------------
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -130,7 +130,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 //--------------------------------------------------------------------------------------
-// À©µµ¿ì ÃÊ±âÈ­
+// ìœˆë„ìš° ì´ˆê¸°í™”
 //--------------------------------------------------------------------------------------
 HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 {
@@ -191,10 +191,10 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
 
     ID3DBlob* pErrorBlob;
     hr = D3DX11CompileFromFile(
-        szFileName, NULL, NULL,                     // shader ÆÄÀÏ ¼³Á¤
-        szEntryPoint, szShaderModel, dwShaderFlags, // ÄÄÆÄÀÏ ¼³Á¤
-        0, NULL,                                    // ½¦ÀÌ´õ ¿É¼Ç
-        ppBlobOut, &pErrorBlob, NULL);              // ¸®ÅÏ
+        szFileName, NULL, NULL,                     // shader íŒŒì¼ ì„¤ì •
+        szEntryPoint, szShaderModel, dwShaderFlags, // ì»´íŒŒì¼ ì„¤ì •
+        0, NULL,                                    // ì‰ì´ë” ì˜µì…˜
+        ppBlobOut, &pErrorBlob, NULL);              // ë¦¬í„´
     if (FAILED(hr))
     {
         if (pErrorBlob != NULL)
@@ -220,7 +220,7 @@ HRESULT InitDevice()
     UINT width = rc.right - rc.left;
     UINT height = rc.bottom - rc.top;
 
-    // Flag ¼³Á¤
+    // Flag ì„¤ì •
     UINT createDeviceFlags = 0;
 #ifdef _DEBUG
     createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -239,20 +239,20 @@ HRESULT InitDevice()
     sd.BufferCount = 1;
     sd.BufferDesc.Width = width;
     sd.BufferDesc.Height = height;
-    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// ¹é¹öÆÛ Æ÷¸Ë
-    sd.BufferDesc.RefreshRate.Numerator = 60; 	        // ºĞÀÚ(FPS)
-    sd.BufferDesc.RefreshRate.Denominator = 1; 	        // ºĞ¸ğ(FPS)
-    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// ¹é¹öÆÛ ·»´õ¸µ
-    sd.OutputWindow = g_hWnd;		                    // ÇöÀç À©µµ¿ì
+    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// ë°±ë²„í¼ í¬ë§·
+    sd.BufferDesc.RefreshRate.Numerator = 60; 	        // ë¶„ì(FPS)
+    sd.BufferDesc.RefreshRate.Denominator = 1; 	        // ë¶„ëª¨(FPS)
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// ë°±ë²„í¼ ë Œë”ë§
+    sd.OutputWindow = g_hWnd;		                    // í˜„ì¬ ìœˆë„ìš°
     sd.SampleDesc.Count = 1;
     sd.SampleDesc.Quality = 0;
     sd.Windowed = TRUE;
 
 
     hr = D3D11CreateDeviceAndSwapChain(
-        0,  		                // ±âº» µğ½ºÇÃ·¹ÀÌ ¾î´ğÅÍ »ç¿ë
-        D3D_DRIVER_TYPE_HARDWARE, 	// 3D ÇÏµå¿ş¾î °¡¼Ó
-        0,  		                // ¼ÒÇÁÆ®¿ş¾î ±¸µ¿ ¾ÈÇÔ
+        0,  		                // ê¸°ë³¸ ë””ìŠ¤í”Œë ˆì´ ì–´ëŒ‘í„° ì‚¬ìš©
+        D3D_DRIVER_TYPE_HARDWARE, 	// 3D í•˜ë“œì›¨ì–´ ê°€ì†
+        0,  		                // ì†Œí”„íŠ¸ì›¨ì–´ êµ¬ë™ ì•ˆí•¨
         createDeviceFlags,
         featureLevels,
         numFeatureLevels,
@@ -269,17 +269,17 @@ HRESULT InitDevice()
     // Create a render target view
     ID3D11Texture2D* pBackBuffer = NULL;
     hr = g_pSwapChain->GetBuffer(
-        0,                          // ÈÄ¸é ¹öÆÛ »öÀÎ. ¿©·¯°³ÀÏ¶§ Áß¿ä. Áö±İÀº 1°³ÀÌ¹Ç·Î 0.
-        __uuidof(ID3D11Texture2D),  // ¹öÆÛ Çü½Ä
-        (LPVOID*)&pBackBuffer);     // ¹Ş¾Æ¿Â ¹öÆÛ
+        0,                          // í›„ë©´ ë²„í¼ ìƒ‰ì¸. ì—¬ëŸ¬ê°œì¼ë•Œ ì¤‘ìš”. ì§€ê¸ˆì€ 1ê°œì´ë¯€ë¡œ 0.
+        __uuidof(ID3D11Texture2D),  // ë²„í¼ í˜•ì‹
+        (LPVOID*)&pBackBuffer);     // ë°›ì•„ì˜¨ ë²„í¼
     if (FAILED(hr))
         return hr;
 
     hr = g_pd3dDevice->CreateRenderTargetView(
         pBackBuffer,
-        NULL, 		            // ÀÚ¿ø Çü½Ä 
+        NULL, 		            // ìì› í˜•ì‹ 
         &g_pRenderTargetView);
-    pBackBuffer->Release();		// GetÀ» ÇØ¿ÔÀ¸¸é ¹İµå½Ã Release
+    pBackBuffer->Release();		// Getì„ í•´ì™”ìœ¼ë©´ ë°˜ë“œì‹œ Release
     if (FAILED(hr))
         return hr;
 
@@ -314,19 +314,19 @@ HRESULT InitDevice()
 
 
     g_pImmediateContext->OMSetRenderTargets(
-        1,    	                // ·»´õ ´ë»ó °³¼ö. Àå¸é ºĞÇÒ½Ã 1 ÃÊ°ú
-        &g_pRenderTargetView,  	// ·»´õ Å¸°Ù
-        g_pDepthStencilView);	// ±íÀÌ/½ºÅÙ½Ç ¹öÆÛ
+        1,    	                // ë Œë” ëŒ€ìƒ ê°œìˆ˜. ì¥ë©´ ë¶„í• ì‹œ 1 ì´ˆê³¼
+        &g_pRenderTargetView,  	// ë Œë” íƒ€ê²Ÿ
+        g_pDepthStencilView);	// ê¹Šì´/ìŠ¤í…ì‹¤ ë²„í¼
 
 
     // Setup the viewport
     D3D11_VIEWPORT vp;
-    vp.Width = (FLOAT)width;    // ºäÆ÷Æ® ³Êºñ
-    vp.Height = (FLOAT)height;  // ºäÆ÷Æ® ³ôÀÌ
+    vp.Width = (FLOAT)width;    // ë·°í¬íŠ¸ ë„ˆë¹„
+    vp.Height = (FLOAT)height;  // ë·°í¬íŠ¸ ë†’ì´
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
-    vp.TopLeftX = 0; 	        // ±×¸®±â ½ÃÀÛ ¿øÁ¡ x
-    vp.TopLeftY = 0; 	        // ±×¸®±â ½ÃÀÛ ¿øÁ¡ y
+    vp.TopLeftX = 0; 	        // ê·¸ë¦¬ê¸° ì‹œì‘ ì›ì  x
+    vp.TopLeftY = 0; 	        // ê·¸ë¦¬ê¸° ì‹œì‘ ì›ì  y
     g_pImmediateContext->RSSetViewports(1, &vp);
 
     
@@ -344,7 +344,7 @@ HRESULT InitDevice()
     hr = g_pd3dDevice->CreateVertexShader(
         pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(),
-        NULL, &g_pVertexShader);        // ¸®ÅÏ(Á¤Á¡ ¼ÎÀÌ´õ)
+        NULL, &g_pVertexShader);        // ë¦¬í„´(ì •ì  ì…°ì´ë”)
     if (FAILED(hr))
     {
         pVSBlob->Release();
@@ -401,18 +401,18 @@ HRESULT InitDevice()
     };
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;             // ¹öÆÛ »ç¿ë ¹æ½Ä
-    bd.ByteWidth = sizeof(SimpleVertex)* 8;     // ¹öÆÛ Å©±â
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;    // ÆÄÀÌÇÁ¶óÀÎ¿¡ ¿¬°áµÇ´Â ¹öÆÛ ÇüÅÂ
-    bd.CPUAccessFlags = 0;                      // CPUÁ¢±Ù flag, ÀÏ¹İÀûÀ¸·Î GPU¸¦ »ç¿ëÇÏ±â ¶§¹®¿¡ 0À» ¾´´Ù.
+    bd.Usage = D3D11_USAGE_DEFAULT;             // ë²„í¼ ì‚¬ìš© ë°©ì‹
+    bd.ByteWidth = sizeof(SimpleVertex)* 8;     // ë²„í¼ í¬ê¸°
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;    // íŒŒì´í”„ë¼ì¸ì— ì—°ê²°ë˜ëŠ” ë²„í¼ í˜•íƒœ
+    bd.CPUAccessFlags = 0;                      // CPUì ‘ê·¼ flag, ì¼ë°˜ì ìœ¼ë¡œ GPUë¥¼ ì‚¬ìš©í•˜ê¸° ë•Œë¬¸ì— 0ì„ ì“´ë‹¤.
     
     D3D11_SUBRESOURCE_DATA InitData;
     ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = vertices;        // ÃÊ±âÈ­ÇÏ±â À§ÇÑ ¹öÆÛ ¹è¿­ Æ÷ÀÎÅÍ
+    InitData.pSysMem = vertices;        // ì´ˆê¸°í™”í•˜ê¸° ìœ„í•œ ë²„í¼ ë°°ì—´ í¬ì¸í„°
     hr = g_pd3dDevice->CreateBuffer(
-        &bd,                            // »ı¼ºÇÒ ¹öÆÛÀÇ Á¤º¸¸¦ ´ãÀº ±¸Á¶Ã¼
-        &InitData,                      // ¹öÆÛ ÃÊ±âÈ­½Ã ÇÊ¿äÇÑ µ¥ÀÌÅÍ
-        &g_pVertexBuffer);              // »ı¼ºµÈ ¹öÆÛ
+        &bd,                            // ìƒì„±í•  ë²„í¼ì˜ ì •ë³´ë¥¼ ë‹´ì€ êµ¬ì¡°ì²´
+        &InitData,                      // ë²„í¼ ì´ˆê¸°í™”ì‹œ í•„ìš”í•œ ë°ì´í„°
+        &g_pVertexBuffer);              // ìƒì„±ëœ ë²„í¼
     if (FAILED(hr))
         return hr;
 
@@ -442,8 +442,8 @@ HRESULT InitDevice()
         6, 4, 5,
         7, 4, 6,
     };
-    bd.Usage = D3D11_USAGE_DEFAULT;     // CPU Á¢±Ù ºÒ°¡, »ı¼ºÈÄ º¯°æ ºÒ°¡, GPU¸¸ Á¢±Ù °¡´É
-    bd.ByteWidth = sizeof(indices);     // Å©±â
+    bd.Usage = D3D11_USAGE_DEFAULT;     // CPU ì ‘ê·¼ ë¶ˆê°€, ìƒì„±í›„ ë³€ê²½ ë¶ˆê°€, GPUë§Œ ì ‘ê·¼ ê°€ëŠ¥
+    bd.ByteWidth = sizeof(indices);     // í¬ê¸°
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = indices;
@@ -486,7 +486,7 @@ HRESULT InitDevice()
 
 
 //--------------------------------------------------------------------------------------
-// »ı¼ºÇß´ø ¿ÀºêÁ§Æ®µé ¸±¸®Áî
+// ìƒì„±í–ˆë˜ ì˜¤ë¸Œì íŠ¸ë“¤ ë¦´ë¦¬ì¦ˆ
 //--------------------------------------------------------------------------------------
 void CleanupDevice()
 {
@@ -508,7 +508,7 @@ void CleanupDevice()
 
 
 //--------------------------------------------------------------------------------------
-// ·»´õ¸µ
+// ë Œë”ë§
 //--------------------------------------------------------------------------------------
 void Render()
 {
@@ -547,8 +547,8 @@ void Render()
     g_pImmediateContext->ClearDepthStencilView(
         g_pDepthStencilView,    // Clear target
         D3D11_CLEAR_DEPTH,      // Clear flag (depth, stencil)
-        1.0f,                   // depth buffer Áö¿ï ¶§ Ã¤¿ï°ª
-        0);                     // stencil buffer Áö¿ï ¶§ ÃÊ±â°ª
+        1.0f,                   // depth buffer ì§€ìš¸ ë•Œ ì±„ìš¸ê°’
+        0);                     // stencil buffer ì§€ìš¸ ë•Œ ì´ˆê¸°ê°’
 
     //
     // Update variables for the cube
@@ -570,5 +570,5 @@ void Render()
     //
     // Present our back buffer to our front buffer
     //
-    g_pSwapChain->Present(0, 0); // Ã¹¹øÂ° ÀÎÀÚ : °»½Å µô·¹ÀÌ
+    g_pSwapChain->Present(0, 0); // ì²«ë²ˆì§¸ ì¸ì : ê°±ì‹  ë”œë ˆì´
 }
