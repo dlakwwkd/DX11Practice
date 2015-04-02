@@ -1,27 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="소스 파일">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="리소스 파일">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{aa42b402-bac6-4223-aa79-8dea40e5aa82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="WinMain.cpp">
-      <Filter>소스 파일</Filter>
+    <ClCompile Include="GameTimer.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Application.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DManager.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BoxRender.fx">
       <Filter>리소스 파일</Filter>
     </FxCompile>
+    <FxCompile Include="default.fx">
+      <Filter>리소스 파일</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameTimer.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Application.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DManager.h">
+      <Filter>Main</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

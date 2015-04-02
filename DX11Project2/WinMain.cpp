@@ -39,8 +39,10 @@ struct ConstantBuffer
 //--------------------------------------------------------------------------------------
 HINSTANCE               g_hInst = NULL;
 HWND                    g_hWnd = NULL;
+
 D3D_DRIVER_TYPE         g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL       g_featureLevel = D3D_FEATURE_LEVEL_11_0;
+
 ID3D11Device*           g_pd3dDevice = NULL;
 ID3D11DeviceContext*    g_pImmediateContext = NULL;
 IDXGISwapChain*         g_pSwapChain = NULL;
@@ -53,6 +55,7 @@ ID3D11InputLayout*      g_pVertexLayout = NULL;
 ID3D11Buffer*           g_pVertexBuffer = NULL; // ID3D11Buffer : 모든 버퍼 공통 인터페이스
 ID3D11Buffer*           g_pIndexBuffer = NULL;
 ID3D11Buffer*           g_pConstantBuffer = NULL;
+
 XMMATRIX                g_World;
 XMMATRIX                g_View;
 XMMATRIX                g_Projection;

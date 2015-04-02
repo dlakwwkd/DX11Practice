@@ -80,10 +80,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="WinMain.cpp" />
+    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="D3DManager.cpp" />
+    <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BoxRender.fx" />
+    <FxCompile Include="default.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application.h" />
+    <ClInclude Include="D3DManager.h" />
+    <ClInclude Include="GameTimer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
