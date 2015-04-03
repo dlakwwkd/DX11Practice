@@ -15,6 +15,7 @@ public:
     LRESULT MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:
+    bool    InitMainWindow();
     void    CalculateFrameStats();
 
 private:

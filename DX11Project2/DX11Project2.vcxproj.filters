@@ -26,6 +26,12 @@
     <ClCompile Include="Main.cpp">
       <Filter>Main</Filter>
     </ClCompile>
+    <ClCompile Include="d3dUtil.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="MathHelper.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BoxRender.fx">
@@ -44,6 +50,15 @@
     </ClInclude>
     <ClInclude Include="D3DManager.h">
       <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx11effect.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

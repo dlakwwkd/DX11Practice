@@ -1,8 +1,6 @@
 #include "Application.h"
 #include "D3DManager.h"
 #include <WindowsX.h>
-#include <sstream>
-#include <fstream>
 
 namespace
 {
@@ -35,50 +33,16 @@ Application::~Application()
 
 bool Application::Init()
 {
-    WNDCLASS wc;
-    wc.style = CS_HREDRAW | CS_VREDRAW;
-    wc.lpfnWndProc = MainWndProc;
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hInstance = m_AppInst;
-    wc.hIcon = LoadIcon(0, IDI_APPLICATION);
-    wc.hCursor = LoadCursor(0, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
-    wc.lpszMenuName = 0;
-    wc.lpszClassName = L"D3DWndClassName";
-
-    if (!RegisterClass(&wc))
-    {
-        MessageBox(0, L"RegisterClass Failed.", 0, 0);
+    if (!InitMainWindow())
         return false;
-    }
-
-    RECT R = { 0, 0, m_ClientWidth, m_ClientHeight };
-    AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
-    int width = R.right - R.left;
-    int height = R.bottom - R.top;
-
-    m_MainWnd = CreateWindow(L"D3DWndClassName", m_MainWndCaption.c_str(),
-        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-        width, height, 0, 0, m_AppInst, 0);
-    if (!m_MainWnd)
-    {
-        MessageBox(0, L"CreateWindow Failed.", 0, 0);
-        return false;
-    }
-
-    ShowWindow(m_MainWnd, SW_SHOW);
-    UpdateWindow(m_MainWnd);
-
     if (!D3DManager::getInstance()->InitDevice(m_MainWnd))
-    {
         return false;
-    }
     return true;
 }
 
 int Application::Run()
 {
+    auto d3d = D3DManager::getInstance();
     MSG msg = { 0 };
     m_Timer.Reset();
     while (msg.message != WM_QUIT)
@@ -94,8 +58,8 @@ int Application::Run()
             if (!m_AppPaused)
             {
                 CalculateFrameStats();
-                D3DManager::getInstance()->UpdateScene(m_Timer.DeltaTime());
-                D3DManager::getInstance()->DrawScene();
+                d3d->UpdateScene(m_Timer.DeltaTime());
+                d3d->DrawScene();
             }
             else
             {
@@ -103,13 +67,15 @@ int Application::Run()
             }
         }
     }
-    D3DManager::getInstance()->CleanupDevice();
+    d3d->CleanupDevice();
     return (int)msg.wParam;
 }
 
 void Application::Resize()
 {
-    D3DManager::getInstance()->Resize();
+    auto d3d = D3DManager::getInstance();
+    d3d->SetClientSize(m_ClientWidth, m_ClientHeight);
+    d3d->Resize();
 }
 
 LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -180,10 +146,6 @@ LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         Resize();
         return 0;
 
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
-
     case WM_MENUCHAR:
         // Don't beep when we alt-enter.
         return MAKELRESULT(0, MNC_CLOSE);
@@ -207,9 +169,54 @@ LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEMOVE:
         //OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
     }
 
     return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+
+bool Application::InitMainWindow()
+{
+    WNDCLASS wc;
+    wc.style = CS_HREDRAW | CS_VREDRAW;
+    wc.lpfnWndProc = MainWndProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
+    wc.hInstance = m_AppInst;
+    wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+    wc.hCursor = LoadCursor(0, IDC_ARROW);
+    wc.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+    wc.lpszMenuName = 0;
+    wc.lpszClassName = L"D3DWndClassName";
+
+    if (!RegisterClass(&wc))
+    {
+        MessageBox(0, L"RegisterClass Failed.", 0, 0);
+        return false;
+    }
+
+    RECT R = { 0, 0, m_ClientWidth, m_ClientHeight };
+    AdjustWindowRect(&R, WS_OVERLAPPEDWINDOW, false);
+    int width = R.right - R.left;
+    int height = R.bottom - R.top;
+
+    m_MainWnd = CreateWindow(L"D3DWndClassName", m_MainWndCaption.c_str(),
+        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+        width, height, 0, 0, m_AppInst, 0);
+    if (!m_MainWnd)
+    {
+        MessageBox(0, L"CreateWindow Failed.", 0, 0);
+        return false;
+    }
+
+    ShowWindow(m_MainWnd, SW_SHOW);
+    UpdateWindow(m_MainWnd);
+
+    return true;
 }
 
 void Application::CalculateFrameStats()

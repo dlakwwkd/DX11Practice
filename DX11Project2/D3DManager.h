@@ -1,38 +1,5 @@
 #pragma once
-#include <dxgi.h>
-#include <d3d11.h>
-#include <d3dx11.h>
-#include <d3dCompiler.h>
-#include <dxerr.h>
-#include <xnamath.h>
-
-#pragma comment( lib, "dxguid.lib" )
-#pragma comment( lib, "dxerr.lib" )
-#pragma comment( lib, "dxgi.lib" )
-#pragma comment( lib, "d3d11.lib" )
-#pragma comment( lib, "d3dx11d.lib" )
-#pragma comment( lib, "d3dcompiler.lib" )
-
-#if defined(DEBUG) | defined(_DEBUG)
-	#ifndef HR
-	#define HR(x)                                              \
-	{                                                          \
-		HRESULT hr = (x);                                      \
-		if(FAILED(hr))                                         \
-		{                                                      \
-			DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
-		}                                                      \
-	}
-	#endif
-
-#else
-	#ifndef HR
-	#define HR(x) (x)
-	#endif
-#endif 
-
-#define ReleaseCOM(x) { if(x){ x->Release(); x = nullptr; } }
-#define SafeDelete(x) { delete x; x = nullptr; }
+#include "d3dUtil.h"
 
 
 struct Vertex
@@ -58,13 +25,15 @@ public:
         return &d3dManager;
     }
 
-    inline ID3D11Device* GetDevice() const { return m_Device; }
+    inline ID3D11Device*    GetDevice() const { return m_Device; }
+    inline float            AspectRatio() const { return static_cast<float>(m_ClientWidth) / m_ClientHeight; }
+    inline void             SetClientSize(int w, int h){ m_ClientWidth = w; m_ClientHeight = h; }
 
     bool    InitDevice(HWND hWnd);
     void    CleanupDevice();
-    void    Resize();
     void    UpdateScene(float dt);
     void    DrawScene();
+    void    Resize();
 
 private:
     void    CreateDeviceAndSwapChain(HWND hWnd);
@@ -106,7 +75,10 @@ private:
     XMMATRIX                m_View;
     XMMATRIX                m_Projection;
 
+    D3D11_VIEWPORT          m_ScreenViewport;
     int                     m_ClientWidth;
     int                     m_ClientHeight;
+    UINT                    m_4xMsaaQuality;
+    bool                    m_Enable4xMsaa;
 };
 

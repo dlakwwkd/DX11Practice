@@ -17,8 +17,11 @@ D3DManager::D3DManager()
     m_IndexBuffer(nullptr),
     m_ConstantBuffer(nullptr),
     m_ClientWidth(800),
-    m_ClientHeight(600)
+    m_ClientHeight(600),
+    m_4xMsaaQuality(0),
+	m_Enable4xMsaa(false)
 {
+    ZeroMemory(&m_ScreenViewport, sizeof(D3D11_VIEWPORT));
 }
 
 
@@ -66,28 +69,19 @@ void D3DManager::CleanupDevice()
     ReleaseCOM(m_Device);
 }
 
-void D3DManager::Resize()
-{
 
-}
 
 void D3DManager::UpdateScene(float dt)
 {
-    // Update our time
-    static float t = 0.0f;
-    static DWORD dwTimeStart = 0;
-    DWORD dwTimeCur = GetTickCount();
-    if (dwTimeStart == 0)
-        dwTimeStart = dwTimeCur;
-    t = (dwTimeCur - dwTimeStart) / 1000.0f;
-
     //
     // Transform Cube
     //
+    static float t = 0.0f;
+    t += dt;
     float scaleValue = sinf(t) + 1;
     float moveValue = cosf(t)*10.0f;
     XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
-    XMMATRIX rotate = XMMatrixRotationZ(t);
+    XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
     XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 10.0f);
     m_World = scale * rotate * position;
 
@@ -116,6 +110,7 @@ void D3DManager::UpdateScene(float dt)
     m_ImmediateContext->UpdateSubresource(m_ConstantBuffer, 0, NULL, &cb1, 0, 0);
 }
 
+
 void D3DManager::DrawScene()
 {
     //
@@ -134,6 +129,78 @@ void D3DManager::DrawScene()
 
 
 
+void D3DManager::Resize()
+{
+    assert(m_ImmediateContext);
+    assert(m_Device);
+    assert(m_SwapChain);
+
+    // Release the old views, as they hold references to the buffers we
+    // will be destroying.  Also release the old depth/stencil buffer.
+
+    ReleaseCOM(m_RenderTargetView);
+    ReleaseCOM(m_DepthStencilView);
+    ReleaseCOM(m_DepthStencil);
+
+
+    // Resize the swap chain and recreate the render target view.
+
+    HR(m_SwapChain->ResizeBuffers(1, m_ClientWidth, m_ClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
+    ID3D11Texture2D* backBuffer;
+    HR(m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&backBuffer)));
+    HR(m_Device->CreateRenderTargetView(backBuffer, 0, &m_RenderTargetView));
+    ReleaseCOM(backBuffer);
+
+    // Create the depth/stencil buffer and view.
+
+    D3D11_TEXTURE2D_DESC depthStencilDesc;
+
+    depthStencilDesc.Width = m_ClientWidth;
+    depthStencilDesc.Height = m_ClientHeight;
+    depthStencilDesc.MipLevels = 1;
+    depthStencilDesc.ArraySize = 1;
+    depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+    // Use 4X MSAA? --must match swap chain MSAA values.
+    if (m_Enable4xMsaa)
+    {
+        depthStencilDesc.SampleDesc.Count = 4;
+        depthStencilDesc.SampleDesc.Quality = m_4xMsaaQuality - 1;
+    }
+    // No MSAA
+    else
+    {
+        depthStencilDesc.SampleDesc.Count = 1;
+        depthStencilDesc.SampleDesc.Quality = 0;
+    }
+
+    depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthStencilDesc.CPUAccessFlags = 0;
+    depthStencilDesc.MiscFlags = 0;
+
+    HR(m_Device->CreateTexture2D(&depthStencilDesc, 0, &m_DepthStencil));
+    HR(m_Device->CreateDepthStencilView(m_DepthStencil, 0, &m_DepthStencilView));
+
+
+    // Bind the render target view and depth/stencil view to the pipeline.
+
+    m_ImmediateContext->OMSetRenderTargets(1, &m_RenderTargetView, m_DepthStencilView);
+
+
+    // Set the viewport transform.
+
+    m_ScreenViewport.TopLeftX = 0;
+    m_ScreenViewport.TopLeftY = 0;
+    m_ScreenViewport.Width = static_cast<float>(m_ClientWidth);
+    m_ScreenViewport.Height = static_cast<float>(m_ClientHeight);
+    m_ScreenViewport.MinDepth = 0.0f;
+    m_ScreenViewport.MaxDepth = 1.0f;
+
+    m_ImmediateContext->RSSetViewports(1, &m_ScreenViewport);
+
+    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, AspectRatio(), 0.01f, 100.0f);
+}
 
 
 //--------------------------------------------------------------------------------------
@@ -209,7 +276,7 @@ void D3DManager::CreateRenderTargetView()
         NULL, 		            // 자원 형식 
         &m_RenderTargetView));
 
-    pBackBuffer->Release();		// Get을 해왔으면 반드시 Release
+    ReleaseCOM(pBackBuffer);	// Get을 해왔으면 반드시 Release
 }
 
 void D3DManager::CreateDepthStencilView()
@@ -274,10 +341,10 @@ HRESULT D3DManager::CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint
     {
         if (pErrorBlob != NULL)
             OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-        if (pErrorBlob) pErrorBlob->Release();
+        ReleaseCOM(pErrorBlob);
         return hr;
     }
-    if (pErrorBlob) pErrorBlob->Release();
+    ReleaseCOM(pErrorBlob);
 
     return S_OK;
 }
@@ -303,7 +370,7 @@ HRESULT D3DManager::SetupVertexShader()
         NULL, &m_VertexShader);
     if (FAILED(hr))
     {
-        pVSBlob->Release();
+        ReleaseCOM(pVSBlob);
         return hr;
     }
 
@@ -320,7 +387,7 @@ HRESULT D3DManager::SetupVertexShader()
         pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(),
         &m_VertexLayout);
-    pVSBlob->Release();
+    ReleaseCOM(pVSBlob);
     if (FAILED(hr))
         return hr;
 
@@ -349,7 +416,7 @@ HRESULT D3DManager::SetupPixelShader()
         pPSBlob->GetBufferPointer(),
         pPSBlob->GetBufferSize(),
         NULL, &m_PixelShader);
-    pPSBlob->Release();
+    ReleaseCOM(pPSBlob);
     if (FAILED(hr))
         return hr;
 
@@ -361,19 +428,19 @@ void D3DManager::CreateBuffers()
     // Create vertex buffer
     Vertex vertices[] =
     {
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(-1.0f, -1.0f, -1.0f), (const float*)&Colors::White   },
+		{ XMFLOAT3(-1.0f, +1.0f, -1.0f), (const float*)&Colors::Black   },
+		{ XMFLOAT3(+1.0f, +1.0f, -1.0f), (const float*)&Colors::Red     },
+		{ XMFLOAT3(+1.0f, -1.0f, -1.0f), (const float*)&Colors::Green   },
+		{ XMFLOAT3(-1.0f, -1.0f, +1.0f), (const float*)&Colors::Blue    },
+		{ XMFLOAT3(-1.0f, +1.0f, +1.0f), (const float*)&Colors::Yellow  },
+		{ XMFLOAT3(+1.0f, +1.0f, +1.0f), (const float*)&Colors::Cyan    },
+		{ XMFLOAT3(+1.0f, -1.0f, +1.0f), (const float*)&Colors::Magenta }
     };
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;             // 버퍼 사용 방식
-    bd.ByteWidth = sizeof(Vertex)* 8;           // 버퍼 크기
+    bd.ByteWidth = sizeof(vertices);            // 버퍼 크기
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;    // 파이프라인에 연결되는 버퍼 형태
     bd.CPUAccessFlags = 0;                      // CPU접근 flag, 일반적으로 GPU를 사용하기 때문에 0을 쓴다.
 
@@ -394,23 +461,29 @@ void D3DManager::CreateBuffers()
     // Create index buffer
     WORD indices[] =
     {
-        3, 1, 0,
-        2, 1, 3,
+        // front face
+        0, 1, 2,
+        0, 2, 3,
 
-        0, 5, 4,
-        1, 5, 0,
+        // back face
+        4, 6, 5,
+        4, 7, 6,
 
-        3, 4, 7,
-        0, 4, 3,
+        // left face
+        4, 5, 1,
+        4, 1, 0,
 
-        1, 6, 5,
-        2, 6, 1,
+        // right face
+        3, 2, 6,
+        3, 6, 7,
 
-        2, 7, 6,
-        3, 7, 2,
+        // top face
+        1, 5, 6,
+        1, 6, 2,
 
-        6, 4, 5,
-        7, 4, 6,
+        // bottom face
+        4, 0, 3,
+        4, 3, 7
     };
     bd.Usage = D3D11_USAGE_DEFAULT;     // CPU 접근 불가, 생성후 변경 불가, GPU만 접근 가능
     bd.ByteWidth = sizeof(indices);     // 크기
@@ -447,7 +520,7 @@ void D3DManager::InitWVPMatrix()
 
     // Initialize the projection matrix
     m_Projection = XMMatrixPerspectiveFovLH(
-        XM_PIDIV2,                              // Pi
-        m_ClientWidth / (FLOAT)m_ClientHeight,  // aspect ratio
-        0.01f, 100.0f);                         // near plane, far plane
+        XM_PIDIV2,      // Pi
+        AspectRatio(),  // aspect ratio
+        0.01f, 100.0f); // near plane, far plane
 }
