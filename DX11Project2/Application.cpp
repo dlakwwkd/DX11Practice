@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "InputManager.h"
 #include "D3DManager.h"
 #include <WindowsX.h>
 
@@ -35,13 +36,19 @@ bool Application::Init()
 {
     if (!InitMainWindow())
         return false;
-    if (!D3DManager::getInstance()->InitDevice(m_MainWnd))
+
+    auto d3d = D3DManager::getInstance();
+    if (!d3d->InitDevice(m_MainWnd))
+    {
+        d3d->CleanupDevice();
         return false;
+    }
     return true;
 }
 
 int Application::Run()
 {
+    auto input = InputManager::getInstance();
     auto d3d = D3DManager::getInstance();
     MSG msg = { 0 };
     m_Timer.Reset();
@@ -58,6 +65,7 @@ int Application::Run()
             if (!m_AppPaused)
             {
                 CalculateFrameStats();
+                input->SetKeyState();
                 d3d->UpdateScene(m_Timer.DeltaTime());
                 d3d->DrawScene();
             }
@@ -80,6 +88,9 @@ void Application::Resize()
 
 LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+    auto input = InputManager::getInstance();
+    auto d3d = D3DManager::getInstance();
+
     switch (msg)
     {
     case WM_ACTIVATE:
@@ -99,7 +110,7 @@ LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         m_ClientWidth = LOWORD(lParam);
         m_ClientHeight = HIWORD(lParam);
 
-        if (D3DManager::getInstance()->GetDevice())
+        if (d3d->GetDevice())
         {
             if (wParam == SIZE_MINIMIZED)
             {
@@ -147,11 +158,11 @@ LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
 
     case WM_MENUCHAR:
-        // Don't beep when we alt-enter.
+        // Alt+Enter로 전체화면
         return MAKELRESULT(0, MNC_CLOSE);
 
-        // Catch this message so to prevent the window from becoming too small.
     case WM_GETMINMAXINFO:
+        // 창 크기 최소한도
         ((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
         ((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
         return 0;
@@ -159,15 +170,22 @@ LRESULT Application::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
-        //OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        input->SetMousePos(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        if (wParam & MK_LBUTTON) input->SetMouseState(MK_LBUTTON, true);
+        if (wParam & MK_MBUTTON) input->SetMouseState(MK_MBUTTON, true);
+        if (wParam & MK_RBUTTON) input->SetMouseState(MK_RBUTTON, true);
+        SetCapture(hwnd);
         return 0;
     case WM_LBUTTONUP:
     case WM_MBUTTONUP:
     case WM_RBUTTONUP:
-        //OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        if (!(wParam & MK_LBUTTON)) input->SetMouseState(MK_LBUTTON, false);
+        if (!(wParam & MK_MBUTTON)) input->SetMouseState(MK_MBUTTON, false);
+        if (!(wParam & MK_RBUTTON)) input->SetMouseState(MK_RBUTTON, false);
+        ReleaseCapture();
         return 0;
     case WM_MOUSEMOVE:
-        //OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        input->SetMousePos(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
         return 0;
 
     case WM_DESTROY:

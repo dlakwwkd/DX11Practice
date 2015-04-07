@@ -12,7 +12,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmd
 #endif
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpszCmdParam);
-    UNREFERENCED_PARAMETER(nCmdShow);
 
     Application app(hInstance);
     if (!app.Init())

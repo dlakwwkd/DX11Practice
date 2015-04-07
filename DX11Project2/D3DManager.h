@@ -1,20 +1,8 @@
 #pragma once
 #include "d3dUtil.h"
-
-
-struct Vertex
-{
-    XMFLOAT3 Pos;
-    XMFLOAT4 Color;
-};
-
-struct ConstantBuffer
-{
-    XMMATRIX World;
-    XMMATRIX View;
-    XMMATRIX Projection;
-};
-
+#include "Camera.h"
+#include "Shader.h"
+class Object;
 
 class D3DManager
 {
@@ -42,11 +30,6 @@ private:
     void    CreateRenderTargetView();
     void    SetViewport();
 
-    HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
-    HRESULT SetupVertexShader();
-    HRESULT SetupPixelShader();
-
-    void    CreateBuffers();
     void    InitWVPMatrix();
 
 private:
@@ -63,19 +46,10 @@ private:
     ID3D11DepthStencilView* m_DepthStencilView;
     ID3D11RenderTargetView* m_RenderTargetView;
 
-    ID3D11VertexShader*     m_VertexShader;
-    ID3D11PixelShader*      m_PixelShader;
-    ID3D11InputLayout*      m_VertexLayout;
+    Camera                  m_Camera;
+    Shader                  m_Shader;
+    std::vector<Object*>    m_ObjectList;
 
-    ID3D11Buffer*           m_VertexBuffer; // ID3D11Buffer : 모든 버퍼 공통 인터페이스
-    ID3D11Buffer*           m_IndexBuffer;
-    ID3D11Buffer*           m_ConstantBuffer;
-
-    XMMATRIX                m_World;
-    XMMATRIX                m_View;
-    XMMATRIX                m_Projection;
-
-    D3D11_VIEWPORT          m_ScreenViewport;
     int                     m_ClientWidth;
     int                     m_ClientHeight;
     UINT                    m_4xMsaaQuality;
