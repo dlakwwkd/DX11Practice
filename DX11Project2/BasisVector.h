@@ -1,10 +1,10 @@
 #pragma once
 #include "Object.h"
-class Box : public Object
+class BasisVector : public Object
 {
 public:
-    Box();
-    virtual ~Box();
+    BasisVector();
+    virtual ~BasisVector();
 
     virtual bool Init(ID3D11Device* device);
     virtual void Release();

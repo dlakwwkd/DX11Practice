@@ -12,7 +12,7 @@ protected:
     };
 public:
     Object();
-    ~Object();
+    virtual ~Object();
 
     virtual bool    Init(ID3D11Device* device) = 0;
     virtual void    Release();

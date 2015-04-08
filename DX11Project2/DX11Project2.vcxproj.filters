@@ -56,6 +56,9 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Component</Filter>
     </ClCompile>
+    <ClCompile Include="BasisVector.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BoxRender.fx">
@@ -98,6 +101,9 @@
     </ClInclude>
     <ClInclude Include="Shader.h">
       <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="BasisVector.h">
+      <Filter>Object</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

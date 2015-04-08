@@ -1,5 +1,6 @@
 #include "D3DManager.h"
 #include "InputManager.h"
+#include "BasisVector.h"
 #include "Box.h"
 
 #define MAX_OBJECT_NUM 100
@@ -246,7 +247,9 @@ void D3DManager::SetViewport()
 
 bool D3DManager::SetObjectList()
 {
+    auto bv = new BasisVector();
     auto box = new Box();
+    m_ObjectList.push_back(bv);
     m_ObjectList.push_back(box);
 
     for (auto& object : m_ObjectList)

@@ -83,9 +83,19 @@ void Box::Release()
 void Box::Update(float dt)
 {
     Object::Update(dt);
+    static float t = 0.0f;
+    t += dt;
+    float scaleValue = sinf(t) + 2;
+    float moveValue = cosf(t)*10.0f;
+    XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
+    XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
+    XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 20.0f);
+    XMMATRIX world = rotate * position;
+    XMStoreFloat4x4(&m_World, world);
 }
 
 void Box::Render(ID3D11DeviceContext* context)
 {
     Object::Render(context);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
