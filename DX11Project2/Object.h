@@ -15,9 +15,9 @@ public:
     ~Object();
 
     virtual bool    Init(ID3D11Device* device) = 0;
-    void            Release();
+    virtual void    Release();
     virtual void    Update(float dt);
-    void            Render(ID3D11DeviceContext* context);
+    virtual void    Render(ID3D11DeviceContext* context);
 
     int             GetIndexCount() const { return m_IndexCount; }
     XMMATRIX        GetWorldMatrix()const { return XMLoadFloat4x4(&m_World); }

@@ -29,22 +29,15 @@ D3DManager::~D3DManager()
 
 bool D3DManager::InitDevice(HWND hWnd)
 {
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    m_ClientWidth = rc.right - rc.left;
-    m_ClientHeight = rc.bottom - rc.top;
-    
+    InitClientSize(hWnd);
+
     CreateDeviceAndSwapChain(hWnd);
     SetRenderTargets();
     SetViewport();
+    
+    if (!SetObjectList())
+        return false;
 
-    auto box = new Box();
-    m_ObjectList.push_back(box);
-    for (auto& object : m_ObjectList)
-    {
-        if (!object->Init(m_Device))
-            return false;
-    }
     if (!m_Shader.Init(m_Device))
         return false;
 
@@ -58,6 +51,7 @@ void D3DManager::CleanupDevice()
         m_ImmediateContext->ClearState();
 
     m_Shader.Release();
+
     for (auto& object : m_ObjectList)
     {
         object->Release();
@@ -130,6 +124,14 @@ void D3DManager::Resize()
 }
 
 
+
+void D3DManager::InitClientSize(HWND hWnd)
+{
+    RECT rc;
+    GetClientRect(hWnd, &rc);
+    m_ClientWidth = rc.right - rc.left;
+    m_ClientHeight = rc.bottom - rc.top;
+}
 
 void D3DManager::CreateDeviceAndSwapChain(HWND hWnd)
 {
@@ -240,5 +242,18 @@ void D3DManager::SetViewport()
     vp.TopLeftX = 0; 	        // 그리기 시작 원점 x
     vp.TopLeftY = 0; 	        // 그리기 시작 원점 y
     m_ImmediateContext->RSSetViewports(1, &vp);
+}
+
+bool D3DManager::SetObjectList()
+{
+    auto box = new Box();
+    m_ObjectList.push_back(box);
+
+    for (auto& object : m_ObjectList)
+    {
+        if (!object->Init(m_Device))
+            return false;
+    }
+    return true;
 }
 

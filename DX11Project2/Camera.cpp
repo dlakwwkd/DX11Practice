@@ -45,6 +45,8 @@ void Camera::Update(float dt)
         Strafe(-10.0f*dt);
     if (input->GetKeyState('D'))
         Strafe(10.0f*dt);
+    if (input->GetKeyState(VK_SPACE))
+        Jump(10.0f*dt);
 
     if (input->GetMouseState(MK_LBUTTON))
     {
@@ -93,6 +95,15 @@ void Camera::Walk(float d)
 	XMVECTOR l = XMLoadFloat3(&mLook);
 	XMVECTOR p = XMLoadFloat3(&mPosition);
 	XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, l, p));
+}
+
+void Camera::Jump(float d)
+{
+    // mPosition += d*mUp
+    XMVECTOR s = XMVectorReplicate(d);
+    XMVECTOR u = XMLoadFloat3(&mUp);
+    XMVECTOR p = XMLoadFloat3(&mPosition);
+    XMStoreFloat3(&mPosition, XMVectorMultiplyAdd(s, u, p));
 }
 
 void Camera::Pitch(float angle)

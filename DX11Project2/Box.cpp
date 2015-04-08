@@ -75,7 +75,17 @@ bool Box::Init(ID3D11Device* device)
     return true;
 }
 
+void Box::Release()
+{
+    Object::Release();
+}
+
 void Box::Update(float dt)
 {
     Object::Update(dt);
+}
+
+void Box::Render(ID3D11DeviceContext* context)
+{
+    Object::Render(context);
 }

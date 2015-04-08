@@ -50,6 +50,7 @@ void Shader::Render(ID3D11DeviceContext* context, int idxCnt, CXMMATRIX world, C
 
     context->RSSetState(m_SolidRS);
     context->IASetInputLayout(m_VertexLayout);
+
     context->VSSetShader(m_VertexShader, NULL, 0);
     context->PSSetShader(m_PixelShader, NULL, 0);
     context->DrawIndexed(idxCnt, 0, 0);

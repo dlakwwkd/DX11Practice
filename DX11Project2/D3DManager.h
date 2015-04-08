@@ -24,13 +24,13 @@ public:
     void    Resize();
 
 private:
+    void    InitClientSize(HWND hWnd);
     void    CreateDeviceAndSwapChain(HWND hWnd);
     void    SetRenderTargets();
     void    CreateDepthStencilView();
     void    CreateRenderTargetView();
     void    SetViewport();
-
-    void    InitWVPMatrix();
+    bool    SetObjectList();
 
 private:
     D3DManager();
