@@ -14,14 +14,14 @@ bool Box::Init(ID3D11Device* device)
 {
     Vertex vertices[] =
     {
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), (const float*)&Colors::White },
-        { XMFLOAT3(-1.0f, +1.0f, -1.0f), (const float*)&Colors::Black },
-        { XMFLOAT3(+1.0f, +1.0f, -1.0f), (const float*)&Colors::Red },
-        { XMFLOAT3(+1.0f, -1.0f, -1.0f), (const float*)&Colors::Green },
-        { XMFLOAT3(-1.0f, -1.0f, +1.0f), (const float*)&Colors::Blue },
-        { XMFLOAT3(-1.0f, +1.0f, +1.0f), (const float*)&Colors::Yellow },
-        { XMFLOAT3(+1.0f, +1.0f, +1.0f), (const float*)&Colors::Cyan },
-        { XMFLOAT3(+1.0f, -1.0f, +1.0f), (const float*)&Colors::Magenta }
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), (const float*)&Colors::White,  XMFLOAT3(-1.0f, -1.0f, -1.0f)},
+        { XMFLOAT3(-1.0f, +1.0f, -1.0f), (const float*)&Colors::Black,  XMFLOAT3(-1.0f, +1.0f, -1.0f)},
+        { XMFLOAT3(+1.0f, +1.0f, -1.0f), (const float*)&Colors::Red,    XMFLOAT3(+1.0f, +1.0f, -1.0f)},
+        { XMFLOAT3(+1.0f, -1.0f, -1.0f), (const float*)&Colors::Green,  XMFLOAT3(+1.0f, -1.0f, -1.0f)},
+        { XMFLOAT3(-1.0f, -1.0f, +1.0f), (const float*)&Colors::Blue,   XMFLOAT3(-1.0f, -1.0f, +1.0f)},
+        { XMFLOAT3(-1.0f, +1.0f, +1.0f), (const float*)&Colors::Yellow, XMFLOAT3(-1.0f, +1.0f, +1.0f)},
+        { XMFLOAT3(+1.0f, +1.0f, +1.0f), (const float*)&Colors::Cyan,   XMFLOAT3(+1.0f, +1.0f, +1.0f)},
+        { XMFLOAT3(+1.0f, -1.0f, +1.0f), (const float*)&Colors::Magenta,XMFLOAT3(+1.0f, -1.0f, +1.0f)}
     };
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));

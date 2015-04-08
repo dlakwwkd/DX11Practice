@@ -19,21 +19,14 @@ bool Shader::Init(ID3D11Device* device)
 {
     HR(SetupVertexShader(device));
     HR(SetupPixelShader(device));
-
-    // Create the constant buffer
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(ConstantBuffer);
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    HR(device->CreateBuffer(&bd, NULL, &m_ConstantBuffer));
-
+    CreateConstantBuffer(device);
+    CreateRenderState(device);
     return true;
 }
 
 void Shader::Release()
 {
+    ReleaseCOM(m_SolidRS);
     ReleaseCOM(m_ConstantBuffer);
     ReleaseCOM(m_VertexLayout);
     ReleaseCOM(m_PixelShader);
@@ -42,13 +35,20 @@ void Shader::Release()
 
 void Shader::Render(ID3D11DeviceContext* context, int idxCnt, CXMMATRIX world, CXMMATRIX view, CXMMATRIX projection)
 {
-    ConstantBuffer cb1;
-    cb1.World = XMMatrixTranspose(world);
-    cb1.View = XMMatrixTranspose(view);
-    cb1.Projection = XMMatrixTranspose(projection);
-    context->UpdateSubresource(m_ConstantBuffer, 0, NULL, &cb1, 0, 0);
-    context->VSSetConstantBuffers(0, 1, &m_ConstantBuffer);
+    XMFLOAT4 lightDirection = { XMFLOAT4(-1.0f, -1.0f, 1.0f, 1.0f) };
+    XMFLOAT4 lightColor = { XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) };
 
+    ConstantBuffer cb;
+    cb.WVP = XMMatrixTranspose(world * view * projection);
+    cb.World = XMMatrixTranspose(world);
+    cb.lightDir = lightDirection;
+    cb.lightColor = lightColor;
+
+    context->UpdateSubresource(m_ConstantBuffer, 0, NULL, &cb, 0, 0);
+    context->VSSetConstantBuffers(0, 1, &m_ConstantBuffer);
+    context->PSSetConstantBuffers(0, 1, &m_ConstantBuffer);
+
+    context->RSSetState(m_SolidRS);
     context->IASetInputLayout(m_VertexLayout);
     context->VSSetShader(m_VertexShader, NULL, 0);
     context->PSSetShader(m_PixelShader, NULL, 0);
@@ -117,6 +117,7 @@ HRESULT Shader::SetupVertexShader(ID3D11Device* device)
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     UINT numElements = ARRAYSIZE(layout);
 
@@ -156,4 +157,25 @@ HRESULT Shader::SetupPixelShader(ID3D11Device* device)
         return hr;
 
     return S_OK;
+}
+
+void Shader::CreateConstantBuffer(ID3D11Device* device)
+{
+    D3D11_BUFFER_DESC bd;
+    ZeroMemory(&bd, sizeof(bd));
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(ConstantBuffer);
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bd.CPUAccessFlags = 0;
+    HR(device->CreateBuffer(&bd, NULL, &m_ConstantBuffer));
+}
+
+void Shader::CreateRenderState(ID3D11Device* device)
+{
+    D3D11_RASTERIZER_DESC rasterizerDesc;
+    ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+    rasterizerDesc.FillMode = D3D11_FILL_SOLID;		// Fill 옵션
+    rasterizerDesc.CullMode = D3D11_CULL_BACK;	    // Culling 옵션
+    rasterizerDesc.FrontCounterClockwise = false;	// 앞/뒷면 로직 선택
+    HR(device->CreateRasterizerState(&rasterizerDesc, &m_SolidRS));
 }
