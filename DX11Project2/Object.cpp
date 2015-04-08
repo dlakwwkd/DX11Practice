@@ -6,7 +6,7 @@ Object::Object()
     m_IndexBuffer(nullptr),
     m_IndexCount(0)
 {
-    m_World = XMMatrixIdentity();
+    XMStoreFloat4x4(&m_World, XMMatrixIdentity());
 }
 
 
@@ -30,7 +30,8 @@ void Object::Update(float dt)
     XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
     XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
     XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 20.0f);
-    m_World = rotate * position;
+    XMMATRIX world = rotate * position;
+    XMStoreFloat4x4(&m_World, world);
 }
 
 void Object::Render(ID3D11DeviceContext* context)

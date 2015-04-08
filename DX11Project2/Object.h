@@ -20,13 +20,13 @@ public:
     void            Render(ID3D11DeviceContext* context);
 
     int             GetIndexCount() const { return m_IndexCount; }
-    CXMMATRIX       GetWorldMatrix()const { return m_World; }
+    XMMATRIX        GetWorldMatrix()const { return XMLoadFloat4x4(&m_World); }
 
 protected:
     ID3D11Buffer*   m_VertexBuffer; // ID3D11Buffer : 모든 버퍼 공통 인터페이스
     ID3D11Buffer*   m_IndexBuffer;
     int             m_IndexCount;
 
-    XMMATRIX        m_World;
+    XMFLOAT4X4      m_World;
 };
 

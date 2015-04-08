@@ -18,102 +18,6 @@ Camera::~Camera()
 {
 }
 
-XMVECTOR Camera::GetPositionXM()const
-{
-	return XMLoadFloat3(&mPosition);
-}
-
-XMFLOAT3 Camera::GetPosition()const
-{
-	return mPosition;
-}
-
-void Camera::SetPosition(float x, float y, float z)
-{
-	mPosition = XMFLOAT3(x, y, z);
-}
-
-void Camera::SetPosition(const XMFLOAT3& v)
-{
-	mPosition = v;
-}
-
-XMVECTOR Camera::GetRightXM()const
-{
-	return XMLoadFloat3(&mRight);
-}
-
-XMFLOAT3 Camera::GetRight()const
-{
-	return mRight;
-}
-
-XMVECTOR Camera::GetUpXM()const
-{
-	return XMLoadFloat3(&mUp);
-}
-
-XMFLOAT3 Camera::GetUp()const
-{
-	return mUp;
-}
-
-XMVECTOR Camera::GetLookXM()const
-{
-	return XMLoadFloat3(&mLook);
-}
-
-XMFLOAT3 Camera::GetLook()const
-{
-	return mLook;
-}
-
-float Camera::GetNearZ()const
-{
-	return mNearZ;
-}
-
-float Camera::GetFarZ()const
-{
-	return mFarZ;
-}
-
-float Camera::GetAspect()const
-{
-	return mAspect;
-}
-
-float Camera::GetFovY()const
-{
-	return mFovY;
-}
-
-float Camera::GetFovX()const
-{
-	float halfWidth = 0.5f*GetNearWindowWidth();
-	return 2.0f*atan(halfWidth / mNearZ);
-}
-
-float Camera::GetNearWindowWidth()const
-{
-	return mAspect * mNearWindowHeight;
-}
-
-float Camera::GetNearWindowHeight()const
-{
-	return mNearWindowHeight;
-}
-
-float Camera::GetFarWindowWidth()const
-{
-	return mAspect * mFarWindowHeight;
-}
-
-float Camera::GetFarWindowHeight()const
-{
-	return mFarWindowHeight;
-}
-
 void Camera::SetLens(float fovY, float aspect, float zn, float zf)
 {
 	// cache properties
@@ -171,21 +75,6 @@ void Camera::LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3&
 	XMVECTOR U = XMLoadFloat3(&up);
 
 	LookAt(P, T, U);
-}
-
-XMMATRIX Camera::View()const
-{
-	return XMLoadFloat4x4(&mView);
-}
-
-XMMATRIX Camera::Proj()const
-{
-	return XMLoadFloat4x4(&mProj);
-}
-
-XMMATRIX Camera::ViewProj()const
-{
-	return XMMatrixMultiply(View(), Proj());
 }
 
 void Camera::Strafe(float d)

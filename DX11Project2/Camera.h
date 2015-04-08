@@ -16,48 +16,53 @@
 class Camera
 {
 public:
-	Camera();
-	~Camera();
+    Camera();
+    ~Camera();
 
-	// Get/Set world camera position.
-	XMVECTOR GetPositionXM()const;
-	XMFLOAT3 GetPosition()const;
-	void SetPosition(float x, float y, float z);
-	void SetPosition(const XMFLOAT3& v);
-	
-	// Get camera basis vectors.
-	XMVECTOR GetRightXM()const;
-	XMFLOAT3 GetRight()const;
-	XMVECTOR GetUpXM()const;
-	XMFLOAT3 GetUp()const;
-	XMVECTOR GetLookXM()const;
-	XMFLOAT3 GetLook()const;
+    // Get/Set world camera position.
+    XMVECTOR    GetPositionXM() const { return XMLoadFloat3(&mPosition); }
+    XMFLOAT3    GetPosition() const { return mPosition; }
+    void        SetPosition(float x, float y, float z){ mPosition = XMFLOAT3(x, y, z); }
+    void        SetPosition(const XMFLOAT3& v){ mPosition = v; }
 
-	// Get frustum properties.
-	float GetNearZ()const;
-	float GetFarZ()const;
-	float GetAspect()const;
-	float GetFovY()const;
-	float GetFovX()const;
+    // Get camera basis vectors.
+    XMVECTOR    GetRightXM() const { return XMLoadFloat3(&mRight); }
+    XMFLOAT3    GetRight() const { return mRight; }
+    XMVECTOR    GetUpXM() const { return XMLoadFloat3(&mUp); }
+    XMFLOAT3    GetUp() const { return mUp; }
+    XMVECTOR    GetLookXM() const { return XMLoadFloat3(&mLook); }
+    XMFLOAT3    GetLook() const { return mLook; }
 
-	// Get near and far plane dimensions in view space coordinates.
-	float GetNearWindowWidth()const;
-	float GetNearWindowHeight()const;
-	float GetFarWindowWidth()const;
-	float GetFarWindowHeight()const;
-	
-	// Set frustum.
+    // Get frustum properties.
+    float       GetNearZ() const { return mNearZ; }
+    float       GetFarZ() const { return mFarZ; }
+    float       GetAspect(){ return mAspect; }
+    float       GetFovY() const { return mFovY; }
+    float       GetFovX() const
+    {
+        float halfWidth = 0.5f*GetNearWindowWidth();
+        return 2.0f*atan(halfWidth / mNearZ);
+    }
+
+    // Get near and far plane dimensions in view space coordinates.
+    float       GetNearWindowWidth() const { return mAspect * mNearWindowHeight; }
+    float       GetNearWindowHeight() const { return mNearWindowHeight; }
+    float       GetFarWindowWidth() const { return mAspect * mFarWindowHeight; }
+    float       GetFarWindowHeight() const { return mFarWindowHeight; }
+
+    // Get View/Proj matrices.
+    XMMATRIX    View() const { return XMLoadFloat4x4(&mView); }
+    XMMATRIX    Proj() const { return XMLoadFloat4x4(&mProj); }
+    XMMATRIX    ViewProj() const { return XMMatrixMultiply(View(), Proj()); }
+
+public:
+    // Set frustum.
 	void SetLens(float fovY, float aspect, float zn, float zf);
     void Update(float dt);
 
 	// Define camera space via LookAt parameters.
 	void LookAt(FXMVECTOR pos, FXMVECTOR target, FXMVECTOR worldUp);
 	void LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up);
-
-	// Get View/Proj matrices.
-	XMMATRIX View()const;
-	XMMATRIX Proj()const;
-	XMMATRIX ViewProj()const;
 
 	// Strafe/Walk the camera a distance d.
 	void Strafe(float d);
@@ -71,7 +76,6 @@ public:
 	void UpdateViewMatrix();
 
 private:
-
 	// Camera coordinate system with coordinates relative to world space.
 	XMFLOAT3 mPosition;
 	XMFLOAT3 mRight;
