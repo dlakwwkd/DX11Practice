@@ -91,10 +91,12 @@
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="Land.cpp" />
     <ClCompile Include="LightHelper.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -119,9 +121,11 @@
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="GeometryGenerator.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="Land.h" />
     <ClInclude Include="LightHelper.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="RenderStates.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

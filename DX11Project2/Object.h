@@ -8,11 +8,6 @@ public:
     Object();
     virtual ~Object();
 
-    virtual bool    Init(ID3D11Device* device) = 0;
-    virtual void    Release();
-    virtual void    Update(float dt);
-    virtual void    Render(ID3D11DeviceContext* context, CXMMATRIX viewProj);
-
     int                         GetVertexOffset() const { return m_VertexOffset; }
     UINT                        GetIndexOffset() const  { return m_IndexOffset; }
     UINT                        GetIndexCount() const   { return m_IndexCount; }
@@ -27,6 +22,14 @@ public:
         m_Effect = effect;
         m_Tech = tech;
     }
+
+    virtual bool    Init(ID3D11Device* device) = 0;
+    virtual void    Release();
+    virtual void    Update(float dt);
+    virtual void    Render(ID3D11DeviceContext* context, CXMMATRIX viewProj);
+
+protected:
+    virtual void    CreateBuffer(ID3D11Device* device) = 0;
 
 protected:
     ID3D11Buffer*               m_VertexBuffer;

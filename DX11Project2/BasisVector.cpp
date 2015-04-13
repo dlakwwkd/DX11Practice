@@ -14,9 +14,40 @@ BasisVector::~BasisVector()
 
 bool BasisVector::Init(ID3D11Device* device)
 {
+    CreateBuffer(device);
+    m_Effect = Effects::ColorFX;
+    m_Tech = Effects::ColorFX->m_ColorTech;
+    return true;
+}
+
+void BasisVector::Release()
+{
+    Object::Release();
+}
+
+void BasisVector::Update(float dt)
+{
+    Object::Update(dt);
+}
+
+void BasisVector::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
+{
+    UINT stride = sizeof(Vertex::Color);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
+    context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    context->IASetInputLayout(InputLayouts::Color);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    Object::Render(context, viewProj);
+}
+
+
+void BasisVector::CreateBuffer(ID3D11Device* device)
+{
     Vertex::Color vertices[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f),   XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
         { XMFLOAT3(100.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
         { XMFLOAT3(0.0f, 100.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
         { XMFLOAT3(0.0f, 0.0f, 100.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
@@ -50,33 +81,4 @@ bool BasisVector::Init(ID3D11Device* device)
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = indices;
     HR(device->CreateBuffer(&bd, &InitData, &m_IndexBuffer));
-
-    //
-    // Set Effect.
-    //
-    m_Effect = Effects::ColorFX;
-    m_Tech = Effects::ColorFX->m_ColorTech;
-    return true;
-}
-
-void BasisVector::Release()
-{
-    Object::Release();
-}
-
-void BasisVector::Update(float dt)
-{
-    Object::Update(dt);
-}
-
-void BasisVector::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
-{
-    UINT stride = sizeof(Vertex::Color);
-    UINT offset = 0;
-    context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
-    context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-    context->IASetInputLayout(InputLayouts::Color);
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-
-    Object::Render(context, viewProj);
 }

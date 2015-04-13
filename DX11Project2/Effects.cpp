@@ -54,20 +54,42 @@ void ColorEffect::UpdateCb(ID3D11DeviceContext* context, CXMMATRIX viewProj, Obj
 BasicEffect::BasicEffect(ID3D11Device* device, const std::wstring& filename)
 : Effect(device, filename)
 {
-    m_Light1Tech    = m_FX->GetTechniqueByName("Light1");
-    m_Light2Tech    = m_FX->GetTechniqueByName("Light2");
-    m_Light3Tech    = m_FX->GetTechniqueByName("Light3");
+    m_Light1Tech                = m_FX->GetTechniqueByName("Light1");
+    m_Light2Tech                = m_FX->GetTechniqueByName("Light2");
+    m_Light3Tech                = m_FX->GetTechniqueByName("Light3");
 
-    m_Light0TexTech = m_FX->GetTechniqueByName("Light0Tex");
-    m_Light1TexTech = m_FX->GetTechniqueByName("Light1Tex");
-    m_Light2TexTech = m_FX->GetTechniqueByName("Light2Tex");
-    m_Light3TexTech = m_FX->GetTechniqueByName("Light3Tex");
+    m_Light0TexTech             = m_FX->GetTechniqueByName("Light0Tex");
+    m_Light1TexTech             = m_FX->GetTechniqueByName("Light1Tex");
+    m_Light2TexTech             = m_FX->GetTechniqueByName("Light2Tex");
+    m_Light3TexTech             = m_FX->GetTechniqueByName("Light3Tex");
+
+    m_Light0TexAlphaClipTech    = m_FX->GetTechniqueByName("Light0TexAlphaClip");
+    m_Light1TexAlphaClipTech    = m_FX->GetTechniqueByName("Light1TexAlphaClip");
+    m_Light2TexAlphaClipTech    = m_FX->GetTechniqueByName("Light2TexAlphaClip");
+    m_Light3TexAlphaClipTech    = m_FX->GetTechniqueByName("Light3TexAlphaClip");
+
+    m_Light1FogTech             = m_FX->GetTechniqueByName("Light1Fog");
+    m_Light2FogTech             = m_FX->GetTechniqueByName("Light2Fog");
+    m_Light3FogTech             = m_FX->GetTechniqueByName("Light3Fog");
+
+    m_Light0TexFogTech          = m_FX->GetTechniqueByName("Light0TexFog");
+    m_Light1TexFogTech          = m_FX->GetTechniqueByName("Light1TexFog");
+    m_Light2TexFogTech          = m_FX->GetTechniqueByName("Light2TexFog");
+    m_Light3TexFogTech          = m_FX->GetTechniqueByName("Light3TexFog");
+
+    m_Light0TexAlphaClipFogTech = m_FX->GetTechniqueByName("Light0TexAlphaClipFog");
+    m_Light1TexAlphaClipFogTech = m_FX->GetTechniqueByName("Light1TexAlphaClipFog");
+    m_Light2TexAlphaClipFogTech = m_FX->GetTechniqueByName("Light2TexAlphaClipFog");
+    m_Light3TexAlphaClipFogTech = m_FX->GetTechniqueByName("Light3TexAlphaClipFog");
 
     m_WorldViewProj     = m_FX->GetVariableByName("gWorldViewProj")->AsMatrix();
     m_World             = m_FX->GetVariableByName("gWorld")->AsMatrix();
     m_WorldInvTranspose = m_FX->GetVariableByName("gWorldInvTranspose")->AsMatrix();
     m_TexTransform      = m_FX->GetVariableByName("gTexTransform")->AsMatrix();
     m_EyePosW           = m_FX->GetVariableByName("gEyePosW")->AsVector();
+	m_FogColor          = m_FX->GetVariableByName("gFogColor")->AsVector();
+	m_FogStart          = m_FX->GetVariableByName("gFogStart")->AsScalar();
+	m_FogRange          = m_FX->GetVariableByName("gFogRange")->AsScalar();
     m_DirLights         = m_FX->GetVariableByName("gDirLights");
     m_Mat               = m_FX->GetVariableByName("gMaterial");
     m_DiffuseMap        = m_FX->GetVariableByName("gDiffuseMap")->AsShaderResource();

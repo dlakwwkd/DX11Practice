@@ -70,6 +70,12 @@
     <ClCompile Include="Effects.cpp">
       <Filter>Global</Filter>
     </ClCompile>
+    <ClCompile Include="Land.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderStates.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="FX\Basic.fx">
@@ -126,6 +132,12 @@
       <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="Effects.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Land.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderStates.h">
       <Filter>Global</Filter>
     </ClInclude>
   </ItemGroup>

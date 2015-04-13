@@ -1,7 +1,8 @@
 #include "Box.h"
-#include "GeometryGenerator.h"
 #include "Vertex.h"
 #include "Effects.h"
+#include "GeometryGenerator.h"
+#include "RenderStates.h"
 
 
 Box::Box()
@@ -15,17 +16,70 @@ Box::~Box()
 
 bool Box::Init(ID3D11Device* device)
 {
+    CreateBuffer(device);
+    m_Effect = Effects::BasicFX;
+    m_Tech = Effects::BasicFX->m_Light1TexTech;
+    HR(D3DX11CreateShaderResourceViewFromFile(device, L"Textures/WoodCrate01.dds", 0, 0, &m_DiffuseMapSRV, 0));
+    return true;
+}
+
+void Box::Release()
+{
+    Object::Release();
+}
+
+void Box::Update(float dt)
+{
+    Object::Update(dt);
+    static float t = 0.0f;
+    t += dt;
+    float scaleValue = sinf(t) + 2;
+    float moveValue = cosf(t)*10.0f;
+    XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
+    XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
+    XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 20.0f);
+    XMMATRIX world = rotate * position;
+    XMStoreFloat4x4(&m_World, world);
+}
+
+void Box::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
+{
+    UINT stride = sizeof(Vertex::Basic32);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
+    context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    context->IASetInputLayout(InputLayouts::Basic32);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    switch (RenderStates::m_RenderOptions)
+    {
+    case RenderOptions::Lighting:
+        m_Tech = Effects::BasicFX->m_Light3Tech;
+        break;
+    case RenderOptions::Textures:
+        m_Tech = Effects::BasicFX->m_Light3TexTech;
+        break;
+    case RenderOptions::TexturesAndFog:
+        m_Tech = Effects::BasicFX->m_Light3TexFogTech;
+        break;
+    }
+    Object::Render(context, viewProj);
+}
+
+
+void Box::CreateBuffer(ID3D11Device* device)
+{
     GeometryGenerator::MeshData box;
 
     GeometryGenerator geoGen;
     geoGen.CreateBox(1.0f, 1.0f, 1.0f, box);
-    
-    m_VertexOffset  = 0;                    // Cache the vertex offsets to each object in the concatenated vertex buffer.
-    m_IndexOffset   = 0;                    // Cache the starting index for each object in the concatenated index buffer.
-    m_IndexCount    = box.Indices.size();   // Cache the index count of each object.
 
-    UINT totalVertexCount   = box.Vertices.size();
-    UINT totalIndexCount    = m_IndexCount;
+    m_VertexOffset = 0;                 // Cache the vertex offsets to each object in the concatenated vertex buffer.
+    m_IndexOffset = 0;                  // Cache the starting index for each object in the concatenated index buffer.
+    m_IndexCount = box.Indices.size();  // Cache the index count of each object.
+
+    UINT totalVertexCount = box.Vertices.size();
+    UINT totalIndexCount = m_IndexCount;
 
     //
     // Extract the vertex elements we are interested in and pack the
@@ -66,47 +120,4 @@ bool Box::Init(ID3D11Device* device)
     D3D11_SUBRESOURCE_DATA iinitData;
     iinitData.pSysMem = &indices[0];
     HR(device->CreateBuffer(&ibd, &iinitData, &m_IndexBuffer));
-
-    //
-    // Load Texture.
-    //
-    HR(D3DX11CreateShaderResourceViewFromFile(device, L"Textures/WoodCrate01.dds", 0, 0, &m_DiffuseMapSRV, 0));
-
-    //
-    // Set Effect.
-    //
-    m_Effect = Effects::BasicFX;
-    m_Tech = Effects::BasicFX->m_Light2TexTech;
-    return true;
-}
-
-void Box::Release()
-{
-    Object::Release();
-}
-
-void Box::Update(float dt)
-{
-    Object::Update(dt);
-    static float t = 0.0f;
-    t += dt;
-    float scaleValue = sinf(t) + 2;
-    float moveValue = cosf(t)*10.0f;
-    XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
-    XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
-    XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 20.0f);
-    XMMATRIX world = rotate * position;
-    XMStoreFloat4x4(&m_World, world);
-}
-
-void Box::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
-{
-    UINT stride = sizeof(Vertex::Basic32);
-    UINT offset = 0;
-    context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
-    context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    context->IASetInputLayout(InputLayouts::Basic32);
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    Object::Render(context, viewProj);
 }

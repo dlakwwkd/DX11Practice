@@ -2,8 +2,10 @@
 #include "InputManager.h"
 #include "Effects.h"
 #include "Vertex.h"
+#include "RenderStates.h"
 #include "BasisVector.h"
 #include "Box.h"
+#include "Land.h"
 
 #define MAX_OBJECT_NUM 100
 
@@ -41,6 +43,7 @@ bool D3DManager::InitDevice(HWND hWnd)
 
     Effects::InitAll(m_Device);
     InputLayouts::InitAll(m_Device);
+    RenderStates::InitAll(m_Device);
 
     if (!SetObjectList())
         return false;
@@ -61,6 +64,7 @@ void D3DManager::CleanupDevice()
     }
     m_ObjectList.clear();
 
+    RenderStates::DestroyAll();
     InputLayouts::DestroyAll();
     Effects::DestroyAll();
 
@@ -81,6 +85,12 @@ void D3DManager::Update(float dt)
     auto input = InputManager::getInstance();
     if (input->GetMouseState(MK_RBUTTON))
         return;
+    if (input->GetKeyState('1'))
+        RenderStates::m_RenderOptions = RenderOptions::Lighting;
+    if (input->GetKeyState('2'))
+        RenderStates::m_RenderOptions = RenderOptions::Textures;
+    if (input->GetKeyState('3'))
+        RenderStates::m_RenderOptions = RenderOptions::TexturesAndFog;
     
     for (auto& object : m_ObjectList)
     {
@@ -92,13 +102,16 @@ void D3DManager::Render()
 {
     float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; //red, green, blue, alpha
     m_ImmediateContext->ClearRenderTargetView(m_RenderTargetView, ClearColor);
-    m_ImmediateContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    m_ImmediateContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     auto viewProj = m_Camera.ViewProj();
     auto eyePos = m_Camera.GetPosition();
 
     Effects::BasicFX->SetDirLights(m_DirLights);
     Effects::BasicFX->SetEyePosW(eyePos);
+    Effects::BasicFX->SetFogColor(Colors::Silver);
+    Effects::BasicFX->SetFogStart(15.0f);
+    Effects::BasicFX->SetFogRange(175.0f);
 
     for (auto& object : m_ObjectList)
     {
@@ -248,23 +261,30 @@ void D3DManager::SetViewport()
 
 void D3DManager::SetLight()
 {
-    m_DirLights[0].Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-    m_DirLights[0].Diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
-    m_DirLights[0].Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
-    m_DirLights[0].Direction = XMFLOAT3(0.707f, -0.707f, 0.0f);
-// 
-//     m_DirLights[1].Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-//     m_DirLights[1].Diffuse = XMFLOAT4(1.4f, 1.4f, 1.4f, 1.0f);
-//     m_DirLights[1].Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 16.0f);
-//     m_DirLights[1].Direction = XMFLOAT3(-0.707f, 0.0f, 0.707f);
+    m_DirLights[0].Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+    m_DirLights[0].Diffuse = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+    m_DirLights[0].Specular = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+    m_DirLights[0].Direction = XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
+
+    m_DirLights[1].Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+    m_DirLights[1].Diffuse = XMFLOAT4(0.20f, 0.20f, 0.20f, 1.0f);
+    m_DirLights[1].Specular = XMFLOAT4(0.25f, 0.25f, 0.25f, 1.0f);
+    m_DirLights[1].Direction = XMFLOAT3(-0.57735f, -0.57735f, 0.57735f);
+
+    m_DirLights[2].Ambient = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+    m_DirLights[2].Diffuse = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+    m_DirLights[2].Specular = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+    m_DirLights[2].Direction = XMFLOAT3(0.0f, -0.707f, -0.707f);
 }
 
 bool D3DManager::SetObjectList()
 {
     auto bv = new BasisVector();
     auto box = new Box();
+    auto land = new Land();
     m_ObjectList.push_back(bv);
     m_ObjectList.push_back(box);
+    m_ObjectList.push_back(land);
 
     for (auto& object : m_ObjectList)
     {
