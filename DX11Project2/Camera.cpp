@@ -47,6 +47,8 @@ void Camera::Update(float dt)
         Strafe(10.0f*dt);
     if (input->GetKeyState(VK_SPACE))
         Jump(10.0f*dt);
+    if (input->GetKeyState(VK_SHIFT))
+        Jump(-10.0f*dt);
 
     if (input->GetMouseState(MK_LBUTTON))
     {
@@ -56,6 +58,8 @@ void Camera::Update(float dt)
         Pitch(dy);
         RotateY(dx);
     }
+
+    UpdateViewMatrix();
 }
 
 void Camera::LookAt(FXMVECTOR pos, FXMVECTOR target, FXMVECTOR worldUp)

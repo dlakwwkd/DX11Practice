@@ -20,6 +20,7 @@
 #include <fstream>
 #include <vector>
 #include "MathHelper.h"
+#include "LightHelper.h"
 
 #pragma comment( lib, "dxguid.lib" )
 #pragma comment( lib, "dxerr.lib" )
@@ -27,6 +28,8 @@
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "d3dx11d.lib" )
 #pragma comment( lib, "d3dcompiler.lib" )
+#pragma comment( lib, "Effects11d.lib" )
+//#pragma comment( lib, "Effects11.lib" )
 
 //---------------------------------------------------------------------------------------
 // Simple d3d error checker for book demos.

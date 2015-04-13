@@ -1,7 +1,6 @@
 #pragma once
 #include "d3dUtil.h"
 #include "Camera.h"
-#include "Shader.h"
 class Object;
 
 class D3DManager
@@ -19,8 +18,8 @@ public:
 
     bool    InitDevice(HWND hWnd);
     void    CleanupDevice();
-    void    UpdateScene(float dt);
-    void    DrawScene();
+    void    Update(float dt);
+    void    Render();
     void    Resize();
 
 private:
@@ -30,6 +29,7 @@ private:
     void    CreateDepthStencilView();
     void    CreateRenderTargetView();
     void    SetViewport();
+    void    SetLight();
     bool    SetObjectList();
 
 private:
@@ -47,8 +47,9 @@ private:
     ID3D11RenderTargetView* m_RenderTargetView;
 
     Camera                  m_Camera;
-    Shader                  m_Shader;
     std::vector<Object*>    m_ObjectList;
+
+    DirectionalLight        m_DirLights[3];
 
     int                     m_ClientWidth;
     int                     m_ClientHeight;

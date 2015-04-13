@@ -1,4 +1,6 @@
 #include "BasisVector.h"
+#include "Vertex.h"
+#include "Effects.h"
 
 
 BasisVector::BasisVector()
@@ -12,12 +14,12 @@ BasisVector::~BasisVector()
 
 bool BasisVector::Init(ID3D11Device* device)
 {
-    Vertex vertices[] =
+    Vertex::Color vertices[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f),       (const float*)&Colors::White, XMFLOAT3(0.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(1000000.0f, 0.0f, 0.0f), (const float*)&Colors::Red,   XMFLOAT3(1.0f, 0.0f, 0.0f) },
-        { XMFLOAT3(0.0f, 1000000.0f, 0.0f), (const float*)&Colors::Green, XMFLOAT3(0.0f, 1.0f, 0.0f) },
-        { XMFLOAT3(0.0f, 0.0f, 1000000.0f), (const float*)&Colors::Blue,  XMFLOAT3(0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f, 0.0f, 0.0f),   XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(100.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f, 100.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f, 0.0f, 100.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
     };
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
@@ -38,13 +40,22 @@ bool BasisVector::Init(ID3D11Device* device)
         0, 2,
         0, 3,
     };
+    m_VertexOffset = 0;
+    m_IndexOffset = 0;
     m_IndexCount = ARRAYSIZE(indices);
+
     bd.Usage = D3D11_USAGE_DEFAULT;     // CPU 접근 불가, 생성후 변경 불가, GPU만 접근 가능
     bd.ByteWidth = sizeof(indices);
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = indices;
     HR(device->CreateBuffer(&bd, &InitData, &m_IndexBuffer));
+
+    //
+    // Set Effect.
+    //
+    m_Effect = Effects::ColorFX;
+    m_Tech = Effects::ColorFX->m_ColorTech;
     return true;
 }
 
@@ -58,8 +69,14 @@ void BasisVector::Update(float dt)
     Object::Update(dt);
 }
 
-void BasisVector::Render(ID3D11DeviceContext* context)
+void BasisVector::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
 {
-    Object::Render(context);
+    UINT stride = sizeof(Vertex::Color);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
+    context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+    context->IASetInputLayout(InputLayouts::Color);
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+
+    Object::Render(context, viewProj);
 }

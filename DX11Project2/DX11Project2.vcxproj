@@ -58,8 +58,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <FxCompile>
-      <ShaderModel>4.0</ShaderModel>
+      <ShaderModel>5.0</ShaderModel>
       <ShaderType>Effect</ShaderType>
+      <ObjectFileOutput>$(ProjectDir)FX\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -86,16 +87,25 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="D3DManager.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
+    <ClCompile Include="Effects.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="LightHelper.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BoxRender.fx" />
-    <FxCompile Include="default.fx" />
+    <FxCompile Include="FX\Basic.fx">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)FX\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="FX\color.fx" />
+    <FxCompile Include="FX\LightHelper.fx">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
@@ -105,11 +115,14 @@
     <ClInclude Include="D3DManager.h" />
     <ClInclude Include="d3dUtil.h" />
     <ClInclude Include="d3dx11effect.h" />
+    <ClInclude Include="Effects.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="GeometryGenerator.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="LightHelper.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="Object.h" />
-    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

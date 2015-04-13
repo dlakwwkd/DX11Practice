@@ -1,4 +1,7 @@
 #include "Box.h"
+#include "GeometryGenerator.h"
+#include "Vertex.h"
+#include "Effects.h"
 
 
 Box::Box()
@@ -12,66 +15,68 @@ Box::~Box()
 
 bool Box::Init(ID3D11Device* device)
 {
-    Vertex vertices[] =
+    GeometryGenerator::MeshData box;
+
+    GeometryGenerator geoGen;
+    geoGen.CreateBox(1.0f, 1.0f, 1.0f, box);
+    
+    m_VertexOffset  = 0;                    // Cache the vertex offsets to each object in the concatenated vertex buffer.
+    m_IndexOffset   = 0;                    // Cache the starting index for each object in the concatenated index buffer.
+    m_IndexCount    = box.Indices.size();   // Cache the index count of each object.
+
+    UINT totalVertexCount   = box.Vertices.size();
+    UINT totalIndexCount    = m_IndexCount;
+
+    //
+    // Extract the vertex elements we are interested in and pack the
+    // vertices of all the meshes into one vertex buffer.
+    //
+    std::vector<Vertex::Basic32> vertices(totalVertexCount);
+
+    UINT k = 0;
+    for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
     {
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), (const float*)&Colors::White,  XMFLOAT3(-1.0f, -1.0f, -1.0f)},
-        { XMFLOAT3(-1.0f, +1.0f, -1.0f), (const float*)&Colors::Black,  XMFLOAT3(-1.0f, +1.0f, -1.0f)},
-        { XMFLOAT3(+1.0f, +1.0f, -1.0f), (const float*)&Colors::Red,    XMFLOAT3(+1.0f, +1.0f, -1.0f)},
-        { XMFLOAT3(+1.0f, -1.0f, -1.0f), (const float*)&Colors::Green,  XMFLOAT3(+1.0f, -1.0f, -1.0f)},
-        { XMFLOAT3(-1.0f, -1.0f, +1.0f), (const float*)&Colors::Blue,   XMFLOAT3(-1.0f, -1.0f, +1.0f)},
-        { XMFLOAT3(-1.0f, +1.0f, +1.0f), (const float*)&Colors::Yellow, XMFLOAT3(-1.0f, +1.0f, +1.0f)},
-        { XMFLOAT3(+1.0f, +1.0f, +1.0f), (const float*)&Colors::Cyan,   XMFLOAT3(+1.0f, +1.0f, +1.0f)},
-        { XMFLOAT3(+1.0f, -1.0f, +1.0f), (const float*)&Colors::Magenta,XMFLOAT3(+1.0f, -1.0f, +1.0f)}
-    };
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;             // 버퍼 사용 방식
-    bd.ByteWidth = sizeof(vertices);            // 버퍼 크기
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;    // 파이프라인에 연결되는 버퍼 형태
-    bd.CPUAccessFlags = 0;                      // CPU접근 flag, 일반적으로 GPU를 사용하기 때문에 0을 쓴다.
+        vertices[k].Pos = box.Vertices[i].Position;
+        vertices[k].Normal = box.Vertices[i].Normal;
+        vertices[k].Tex = box.Vertices[i].TexC;
+    }
 
-    D3D11_SUBRESOURCE_DATA InitData;
-    ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = vertices;        // 초기화하기 위한 버퍼 배열 포인터
-    HR(device->CreateBuffer(
-        &bd,                            // 생성할 버퍼의 정보를 담은 구조체
-        &InitData,                      // 버퍼 초기화시 필요한 데이터
-        &m_VertexBuffer));              // 생성된 버퍼
+    D3D11_BUFFER_DESC vbd;
+    vbd.Usage = D3D11_USAGE_IMMUTABLE;
+    vbd.ByteWidth = sizeof(Vertex::Basic32) * totalVertexCount;
+    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vbd.CPUAccessFlags = 0;
+    vbd.MiscFlags = 0;
+    D3D11_SUBRESOURCE_DATA vinitData;
+    vinitData.pSysMem = &vertices[0];
+    HR(device->CreateBuffer(&vbd, &vinitData, &m_VertexBuffer));
 
+    //
+    // Pack the indices of all the meshes into one index buffer.
+    //
+    std::vector<UINT> indices;
+    indices.insert(indices.end(), box.Indices.begin(), box.Indices.end());
 
-    WORD indices[] =
-    {
-        // front face
-        0, 1, 2,
-        0, 2, 3,
+    D3D11_BUFFER_DESC ibd;
+    ibd.Usage = D3D11_USAGE_IMMUTABLE;
+    ibd.ByteWidth = sizeof(UINT)* totalIndexCount;
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.CPUAccessFlags = 0;
+    ibd.MiscFlags = 0;
+    D3D11_SUBRESOURCE_DATA iinitData;
+    iinitData.pSysMem = &indices[0];
+    HR(device->CreateBuffer(&ibd, &iinitData, &m_IndexBuffer));
 
-        // back face
-        4, 6, 5,
-        4, 7, 6,
+    //
+    // Load Texture.
+    //
+    HR(D3DX11CreateShaderResourceViewFromFile(device, L"Textures/WoodCrate01.dds", 0, 0, &m_DiffuseMapSRV, 0));
 
-        // left face
-        4, 5, 1,
-        4, 1, 0,
-
-        // right face
-        3, 2, 6,
-        3, 6, 7,
-
-        // top face
-        1, 5, 6,
-        1, 6, 2,
-
-        // bottom face
-        4, 0, 3,
-        4, 3, 7
-    };
-    m_IndexCount = ARRAYSIZE(indices);
-    bd.Usage = D3D11_USAGE_DEFAULT;     // CPU 접근 불가, 생성후 변경 불가, GPU만 접근 가능
-    bd.ByteWidth = sizeof(indices);
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    InitData.pSysMem = indices;
-    HR(device->CreateBuffer(&bd, &InitData, &m_IndexBuffer));
+    //
+    // Set Effect.
+    //
+    m_Effect = Effects::BasicFX;
+    m_Tech = Effects::BasicFX->m_Light2TexTech;
     return true;
 }
 
@@ -94,8 +99,14 @@ void Box::Update(float dt)
     XMStoreFloat4x4(&m_World, world);
 }
 
-void Box::Render(ID3D11DeviceContext* context)
+void Box::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
 {
-    Object::Render(context);
+    UINT stride = sizeof(Vertex::Basic32);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &m_VertexBuffer, &stride, &offset);
+    context->IASetIndexBuffer(m_IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    context->IASetInputLayout(InputLayouts::Basic32);
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    Object::Render(context, viewProj);
 }

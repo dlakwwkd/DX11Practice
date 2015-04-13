@@ -66,8 +66,8 @@ int Application::Run()
             {
                 CalculateFrameStats();
                 input->SetKeyState();
-                d3d->UpdateScene(m_Timer.DeltaTime());
-                d3d->DrawScene();
+                d3d->Update(m_Timer.DeltaTime());
+                d3d->Render();
             }
             else
             {

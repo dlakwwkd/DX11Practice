@@ -1,5 +1,7 @@
 #include "D3DManager.h"
 #include "InputManager.h"
+#include "Effects.h"
+#include "Vertex.h"
 #include "BasisVector.h"
 #include "Box.h"
 
@@ -35,11 +37,12 @@ bool D3DManager::InitDevice(HWND hWnd)
     CreateDeviceAndSwapChain(hWnd);
     SetRenderTargets();
     SetViewport();
-    
-    if (!SetObjectList())
-        return false;
+    SetLight();
 
-    if (!m_Shader.Init(m_Device))
+    Effects::InitAll(m_Device);
+    InputLayouts::InitAll(m_Device);
+
+    if (!SetObjectList())
         return false;
 
     Resize();
@@ -51,14 +54,15 @@ void D3DManager::CleanupDevice()
     if (m_ImmediateContext)
         m_ImmediateContext->ClearState();
 
-    m_Shader.Release();
-
     for (auto& object : m_ObjectList)
     {
         object->Release();
         SafeDelete(object);
     }
     m_ObjectList.clear();
+
+    InputLayouts::DestroyAll();
+    Effects::DestroyAll();
 
     ReleaseCOM(m_DepthStencil);
     ReleaseCOM(m_DepthStencilView);
@@ -70,7 +74,7 @@ void D3DManager::CleanupDevice()
 
 
 
-void D3DManager::UpdateScene(float dt)
+void D3DManager::Update(float dt)
 {
     m_Camera.Update(dt);
 
@@ -84,25 +88,22 @@ void D3DManager::UpdateScene(float dt)
     }
 }
 
-void D3DManager::DrawScene()
+void D3DManager::Render()
 {
     float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; //red, green, blue, alpha
     m_ImmediateContext->ClearRenderTargetView(m_RenderTargetView, ClearColor);
     m_ImmediateContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-    m_Camera.UpdateViewMatrix();
-    auto view = m_Camera.View();
-    auto proj = m_Camera.Proj();
+    auto viewProj = m_Camera.ViewProj();
+    auto eyePos = m_Camera.GetPosition();
+
+    Effects::BasicFX->SetDirLights(m_DirLights);
+    Effects::BasicFX->SetEyePosW(eyePos);
 
     for (auto& object : m_ObjectList)
     {
-        auto idxCnt = object->GetIndexCount();
-        auto world = object->GetWorldMatrix();
-
-        object->Render(m_ImmediateContext);
-        m_Shader.Render(m_ImmediateContext, idxCnt, world, view, proj);
+        object->Render(m_ImmediateContext, viewProj);
     }
-
     HR(m_SwapChain->Present(0, 0)); // 첫번째 인자 : 갱신 딜레이
 }
 
@@ -243,6 +244,19 @@ void D3DManager::SetViewport()
     vp.TopLeftX = 0; 	        // 그리기 시작 원점 x
     vp.TopLeftY = 0; 	        // 그리기 시작 원점 y
     m_ImmediateContext->RSSetViewports(1, &vp);
+}
+
+void D3DManager::SetLight()
+{
+    m_DirLights[0].Ambient = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+    m_DirLights[0].Diffuse = XMFLOAT4(0.8f, 0.8f, 0.8f, 1.0f);
+    m_DirLights[0].Specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
+    m_DirLights[0].Direction = XMFLOAT3(0.707f, -0.707f, 0.0f);
+// 
+//     m_DirLights[1].Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+//     m_DirLights[1].Diffuse = XMFLOAT4(1.4f, 1.4f, 1.4f, 1.0f);
+//     m_DirLights[1].Specular = XMFLOAT4(0.3f, 0.3f, 0.3f, 16.0f);
+//     m_DirLights[1].Direction = XMFLOAT3(-0.707f, 0.0f, 0.707f);
 }
 
 bool D3DManager::SetObjectList()

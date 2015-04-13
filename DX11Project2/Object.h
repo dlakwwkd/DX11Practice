@@ -1,15 +1,9 @@
 #pragma once
 #include "d3dUtil.h"
+class Effect;
+
 class Object
 {
-protected:
-    struct Vertex
-    {
-        XMFLOAT3 Pos;
-        XMFLOAT4 Color;
-
-        XMFLOAT3 Normal;
-    };
 public:
     Object();
     virtual ~Object();
@@ -17,16 +11,39 @@ public:
     virtual bool    Init(ID3D11Device* device) = 0;
     virtual void    Release();
     virtual void    Update(float dt);
-    virtual void    Render(ID3D11DeviceContext* context);
+    virtual void    Render(ID3D11DeviceContext* context, CXMMATRIX viewProj);
 
-    int             GetIndexCount() const { return m_IndexCount; }
-    XMMATRIX        GetWorldMatrix()const { return XMLoadFloat4x4(&m_World); }
+    int                         GetVertexOffset() const { return m_VertexOffset; }
+    UINT                        GetIndexOffset() const  { return m_IndexOffset; }
+    UINT                        GetIndexCount() const   { return m_IndexCount; }
+    XMMATRIX                    GetWorldMatrix() const  { return XMLoadFloat4x4(&m_World); }
+    XMMATRIX                    GetTexTransform() const { return XMLoadFloat4x4(&m_TexTransform); }
+    ID3D11ShaderResourceView*   GetSRV() const          { return m_DiffuseMapSRV; }
+    Material                    GetMaterial() const     { return m_Mat; }
+
+    void ChangeEffectAndTech(Effect* effect, ID3DX11EffectTechnique* tech)
+    {
+        if (!effect || !tech) return;
+        m_Effect = effect;
+        m_Tech = tech;
+    }
 
 protected:
-    ID3D11Buffer*   m_VertexBuffer; // ID3D11Buffer : 모든 버퍼 공통 인터페이스
-    ID3D11Buffer*   m_IndexBuffer;
-    int             m_IndexCount;
+    ID3D11Buffer*               m_VertexBuffer;
+    ID3D11Buffer*               m_IndexBuffer;
+    int                         m_VertexOffset;
+    UINT                        m_IndexOffset;
+    UINT                        m_IndexCount;
 
-    XMFLOAT4X4      m_World;
+    XMFLOAT4X4                  m_World;
+    XMFLOAT4X4                  m_TexTransform;
+    ID3D11ShaderResourceView*   m_DiffuseMapSRV;
+    Material                    m_Mat;
+
+    Effect*                     m_Effect;
+    ID3DX11EffectTechnique*     m_Tech;
+
+    friend class ColorEffect;
+    friend class BasicEffect;
 };
 
