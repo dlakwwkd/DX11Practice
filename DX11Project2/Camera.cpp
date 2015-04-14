@@ -60,7 +60,6 @@ void Camera::Update(float dt)
         Pitch(dy);
         RotateY(dx);
     }
-
     UpdateViewMatrix();
 }
 

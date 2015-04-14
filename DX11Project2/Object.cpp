@@ -29,6 +29,7 @@ Object::~Object()
 
 void Object::Release()
 {
+    ReleaseCOM(m_DiffuseMapSRV);
     ReleaseCOM(m_IndexBuffer);
     ReleaseCOM(m_VertexBuffer);
 }
