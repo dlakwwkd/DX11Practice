@@ -37,6 +37,8 @@ void Camera::Update(float dt)
 {
     auto input = InputManager::getInstance();
     
+    if (input->GetKeyState('Q'))
+        dt *= 10;
     if (input->GetKeyState('W'))
         Walk(10.0f*dt);
     if (input->GetKeyState('S'))

@@ -110,8 +110,8 @@ void D3DManager::Render()
     Effects::BasicFX->SetDirLights(m_DirLights);
     Effects::BasicFX->SetEyePosW(eyePos);
     Effects::BasicFX->SetFogColor(Colors::Silver);
-    Effects::BasicFX->SetFogStart(15.0f);
-    Effects::BasicFX->SetFogRange(175.0f);
+    Effects::BasicFX->SetFogStart(50.0f);
+    Effects::BasicFX->SetFogRange(150.0f);
 
     for (auto& object : m_ObjectList)
     {
