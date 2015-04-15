@@ -1,5 +1,4 @@
 #include "Land.h"
-#include "Vertex.h"
 #include "Effects.h"
 #include "GeometryGenerator.h"
 #include "RenderStates.h"
@@ -79,17 +78,16 @@ void Land::CreateBuffer(ID3D11Device* device)
     // Extract the vertex elements we are interested and apply the height function to
     // each vertex.  
     //
-
-    std::vector<Vertex::Basic32> vertices(grid.Vertices.size());
+    m_MeshVertices.resize(grid.Vertices.size());
     for (UINT i = 0; i < grid.Vertices.size(); ++i)
     {
         XMFLOAT3 p = grid.Vertices[i].Position;
 
         p.y = GetHillHeight(p.x, p.z);
 
-        vertices[i].Pos = p;
-        vertices[i].Normal = GetHillNormal(p.x, p.z);
-        vertices[i].Tex = grid.Vertices[i].TexC;
+        m_MeshVertices[i].Pos = p;
+        m_MeshVertices[i].Normal = GetHillNormal(p.x, p.z);
+        m_MeshVertices[i].Tex = grid.Vertices[i].TexC;
     }
 
     D3D11_BUFFER_DESC vbd;
@@ -99,12 +97,13 @@ void Land::CreateBuffer(ID3D11Device* device)
     vbd.CPUAccessFlags = 0;
     vbd.MiscFlags = 0;
     D3D11_SUBRESOURCE_DATA vinitData;
-    vinitData.pSysMem = &vertices[0];
+    vinitData.pSysMem = &m_MeshVertices[0];
     HR(device->CreateBuffer(&vbd, &vinitData, &m_VertexBuffer));
 
     //
     // Pack the indices of all the meshes into one index buffer.
     //
+    m_MeshIndices.insert(m_MeshIndices.end(), grid.Indices.begin(), grid.Indices.end());
 
     D3D11_BUFFER_DESC ibd;
     ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -113,6 +112,6 @@ void Land::CreateBuffer(ID3D11Device* device)
     ibd.CPUAccessFlags = 0;
     ibd.MiscFlags = 0;
     D3D11_SUBRESOURCE_DATA iinitData;
-    iinitData.pSysMem = &grid.Indices[0];
+    iinitData.pSysMem = &m_MeshIndices[0];
     HR(device->CreateBuffer(&ibd, &iinitData, &m_IndexBuffer));
 }

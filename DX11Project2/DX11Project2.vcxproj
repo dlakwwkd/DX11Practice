@@ -98,6 +98,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="RenderStates.cpp" />
     <ClCompile Include="Vertex.cpp" />
+    <ClCompile Include="xnacollision.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="FX\Basic.fx">
@@ -127,6 +128,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="RenderStates.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="xnacollision.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

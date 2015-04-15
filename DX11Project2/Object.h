@@ -1,5 +1,6 @@
 #pragma once
 #include "d3dUtil.h"
+#include "Vertex.h"
 class Effect;
 
 class Object
@@ -16,6 +17,7 @@ public:
     ID3D11ShaderResourceView*   GetSRV() const          { return m_DiffuseMapSRV; }
     Material                    GetMaterial() const     { return m_Mat; }
 
+    void Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P);
     void ChangeEffectAndTech(Effect* effect, ID3DX11EffectTechnique* tech)
     {
         if (!effect || !tech) return;
@@ -32,19 +34,24 @@ protected:
     virtual void    CreateBuffer(ID3D11Device* device) = 0;
 
 protected:
-    ID3D11Buffer*               m_VertexBuffer;
-    ID3D11Buffer*               m_IndexBuffer;
-    int                         m_VertexOffset;
-    UINT                        m_IndexOffset;
-    UINT                        m_IndexCount;
+    ID3D11Buffer*                   m_VertexBuffer;
+    ID3D11Buffer*                   m_IndexBuffer;
+    int                             m_VertexOffset;
+    UINT                            m_IndexOffset;
+    UINT                            m_IndexCount;
+    UINT                            m_PickedTriangle;
 
-    XMFLOAT4X4                  m_World;
-    XMFLOAT4X4                  m_TexTransform;
-    ID3D11ShaderResourceView*   m_DiffuseMapSRV;
-    Material                    m_Mat;
+    std::vector<Vertex::Basic32>    m_MeshVertices;
+    std::vector<UINT>               m_MeshIndices;
 
-    Effect*                     m_Effect;
-    ID3DX11EffectTechnique*     m_Tech;
+    XMFLOAT4X4                      m_World;
+    XMFLOAT4X4                      m_TexTransform;
+    ID3D11ShaderResourceView*       m_DiffuseMapSRV;
+    Material                        m_Mat;
+    Material                        m_PickedTriangleMat;
+
+    Effect*                         m_Effect;
+    ID3DX11EffectTechnique*         m_Tech;
 
     friend class ColorEffect;
     friend class BasicEffect;

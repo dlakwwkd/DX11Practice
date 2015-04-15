@@ -92,8 +92,12 @@ void D3DManager::Update(float dt)
     if (input->GetKeyState('3'))
         RenderStates::m_RenderOptions = RenderOptions::TexturesAndFog;
     
+    auto pos = input->GetMousePos();
+    auto view = m_Camera.View();
+    auto proj = m_Camera.Proj();
     for (auto& object : m_ObjectList)
     {
+        object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj);
         object->Update(dt);
     }
 }

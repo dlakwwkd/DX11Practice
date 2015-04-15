@@ -1,5 +1,4 @@
 #include "Box.h"
-#include "Vertex.h"
 #include "Effects.h"
 #include "GeometryGenerator.h"
 #include "RenderStates.h"
@@ -85,14 +84,13 @@ void Box::CreateBuffer(ID3D11Device* device)
     // Extract the vertex elements we are interested in and pack the
     // vertices of all the meshes into one vertex buffer.
     //
-    std::vector<Vertex::Basic32> vertices(totalVertexCount);
-
+    m_MeshVertices.resize(totalVertexCount);
     UINT k = 0;
     for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
     {
-        vertices[k].Pos = box.Vertices[i].Position;
-        vertices[k].Normal = box.Vertices[i].Normal;
-        vertices[k].Tex = box.Vertices[i].TexC;
+        m_MeshVertices[k].Pos = box.Vertices[i].Position;
+        m_MeshVertices[k].Normal = box.Vertices[i].Normal;
+        m_MeshVertices[k].Tex = box.Vertices[i].TexC;
     }
 
     D3D11_BUFFER_DESC vbd;
@@ -102,14 +100,13 @@ void Box::CreateBuffer(ID3D11Device* device)
     vbd.CPUAccessFlags = 0;
     vbd.MiscFlags = 0;
     D3D11_SUBRESOURCE_DATA vinitData;
-    vinitData.pSysMem = &vertices[0];
+    vinitData.pSysMem = &m_MeshVertices[0];
     HR(device->CreateBuffer(&vbd, &vinitData, &m_VertexBuffer));
 
     //
     // Pack the indices of all the meshes into one index buffer.
     //
-    std::vector<UINT> indices;
-    indices.insert(indices.end(), box.Indices.begin(), box.Indices.end());
+    m_MeshIndices.insert(m_MeshIndices.end(), box.Indices.begin(), box.Indices.end());
 
     D3D11_BUFFER_DESC ibd;
     ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -118,6 +115,6 @@ void Box::CreateBuffer(ID3D11Device* device)
     ibd.CPUAccessFlags = 0;
     ibd.MiscFlags = 0;
     D3D11_SUBRESOURCE_DATA iinitData;
-    iinitData.pSysMem = &indices[0];
+    iinitData.pSysMem = &m_MeshIndices[0];
     HR(device->CreateBuffer(&ibd, &iinitData, &m_IndexBuffer));
 }

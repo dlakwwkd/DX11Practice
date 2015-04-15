@@ -1,5 +1,4 @@
 #include "BasisVector.h"
-#include "Vertex.h"
 #include "Effects.h"
 
 
