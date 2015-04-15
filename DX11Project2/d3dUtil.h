@@ -21,6 +21,7 @@
 #include <vector>
 #include "MathHelper.h"
 #include "LightHelper.h"
+#include "xnacollision.h"
 
 #pragma comment( lib, "dxguid.lib" )
 #pragma comment( lib, "dxerr.lib" )

@@ -29,16 +29,17 @@ void Box::Release()
 
 void Box::Update(float dt)
 {
-    Object::Update(dt);
     static float t = 0.0f;
     t += dt;
-    float scaleValue = sinf(t) + 2;
+    float scaleValue = 2.0f;
     float moveValue = cosf(t)*10.0f;
     XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
     XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
     XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 20.0f);
-    XMMATRIX world = rotate * position;
+    XMMATRIX world = scale * rotate * position;
     XMStoreFloat4x4(&m_World, world);
+
+    Object::Update(dt);
 }
 
 void Box::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
@@ -84,6 +85,11 @@ void Box::CreateBuffer(ID3D11Device* device)
     // Extract the vertex elements we are interested in and pack the
     // vertices of all the meshes into one vertex buffer.
     //
+    XMFLOAT3 vMinf3(+MathHelper::Infinity, +MathHelper::Infinity, +MathHelper::Infinity);
+    XMFLOAT3 vMaxf3(-MathHelper::Infinity, -MathHelper::Infinity, -MathHelper::Infinity);
+    XMVECTOR vMin = XMLoadFloat3(&vMinf3);
+    XMVECTOR vMax = XMLoadFloat3(&vMaxf3);
+
     m_MeshVertices.resize(totalVertexCount);
     UINT k = 0;
     for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
@@ -91,7 +97,14 @@ void Box::CreateBuffer(ID3D11Device* device)
         m_MeshVertices[k].Pos = box.Vertices[i].Position;
         m_MeshVertices[k].Normal = box.Vertices[i].Normal;
         m_MeshVertices[k].Tex = box.Vertices[i].TexC;
+
+        XMVECTOR P = XMLoadFloat3(&m_MeshVertices[i].Pos);
+
+        vMin = XMVectorMin(vMin, P);
+        vMax = XMVectorMax(vMax, P);
     }
+    XMStoreFloat3(&m_MeshBox.Center, 0.5f*(vMin + vMax));
+    XMStoreFloat3(&m_MeshBox.Extents, 0.5f*(vMax - vMin));
 
     D3D11_BUFFER_DESC vbd;
     vbd.Usage = D3D11_USAGE_IMMUTABLE;

@@ -97,8 +97,8 @@ void D3DManager::Update(float dt)
     auto proj = m_Camera.Proj();
     for (auto& object : m_ObjectList)
     {
-        object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj);
         object->Update(dt);
+        object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj);
     }
 }
 

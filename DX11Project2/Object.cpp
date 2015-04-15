@@ -1,6 +1,5 @@
 #include "Object.h"
 #include "Effects.h"
-#include "xnacollision.h"
 #include "RenderStates.h"
 
 
@@ -18,6 +17,9 @@ Object::Object()
     XMMATRIX I = XMMatrixIdentity();
     XMStoreFloat4x4(&m_World, I);
     XMStoreFloat4x4(&m_TexTransform, I);
+
+    m_MeshBox.Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
+    m_MeshBox.Extents = XMFLOAT3(0.0f, 0.0f, 0.0f);
     
     m_Mat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     m_Mat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -58,17 +60,12 @@ void Object::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
 
         if (m_PickedTriangle != -1)
         {
-            // Change depth test from < to <= so that if we draw the same triangle twice, it will still pass
-            // the depth test.  This is because we redraw the picked triangle with a different material
-            // to highlight it.  
-
             context->OMSetDepthStencilState(RenderStates::LessEqualDSS, 0);
 
             Effects::BasicFX->SetMaterial(m_PickedTriangleMat);
             m_Tech->GetPassByIndex(p)->Apply(0, context);
             context->DrawIndexed(3, 3 * m_PickedTriangle, 0);
 
-            // restore default
             context->OMSetDepthStencilState(0, 0);
         }
     }
@@ -98,17 +95,11 @@ void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P)
     // Make the ray direction unit length for the intersection tests.
     rayDir = XMVector3Normalize(rayDir);
 
-    // If we hit the bounding box of the Mesh, then we might have picked a Mesh triangle,
-    // so do the ray/triangle tests.
-    //
-    // If we did not hit the bounding box, then it is impossible that we hit 
-    // the Mesh, so do not waste effort doing ray/triangle tests.
-
     // Assume we have not picked anything yet, so init to -1.
     m_PickedTriangle = -1;
     float tmin = 0.0f;
-//     if (XNA::IntersectRayAxisAlignedBox(rayOrigin, rayDir, &mMeshBox, &tmin))
-//     {
+     if (XNA::IntersectRayAxisAlignedBox(rayOrigin, rayDir, &m_MeshBox, &tmin))
+     {
         // Find the nearest ray/triangle intersection.
         tmin = MathHelper::Infinity;
         for (UINT i = 0; i < m_MeshIndices.size() / 3; ++i)
@@ -135,5 +126,5 @@ void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P)
                 }
             }
         }
-//    }
+    }
 }

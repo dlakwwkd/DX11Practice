@@ -43,6 +43,7 @@ protected:
 
     std::vector<Vertex::Basic32>    m_MeshVertices;
     std::vector<UINT>               m_MeshIndices;
+    XNA::AxisAlignedBox             m_MeshBox;
 
     XMFLOAT4X4                      m_World;
     XMFLOAT4X4                      m_TexTransform;

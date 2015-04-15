@@ -78,6 +78,11 @@ void Land::CreateBuffer(ID3D11Device* device)
     // Extract the vertex elements we are interested and apply the height function to
     // each vertex.  
     //
+    XMFLOAT3 vMinf3(+MathHelper::Infinity, +MathHelper::Infinity, +MathHelper::Infinity);
+    XMFLOAT3 vMaxf3(-MathHelper::Infinity, -MathHelper::Infinity, -MathHelper::Infinity);
+    XMVECTOR vMin = XMLoadFloat3(&vMinf3);
+    XMVECTOR vMax = XMLoadFloat3(&vMaxf3);
+
     m_MeshVertices.resize(grid.Vertices.size());
     for (UINT i = 0; i < grid.Vertices.size(); ++i)
     {
@@ -88,7 +93,14 @@ void Land::CreateBuffer(ID3D11Device* device)
         m_MeshVertices[i].Pos = p;
         m_MeshVertices[i].Normal = GetHillNormal(p.x, p.z);
         m_MeshVertices[i].Tex = grid.Vertices[i].TexC;
+
+        XMVECTOR P = XMLoadFloat3(&m_MeshVertices[i].Pos);
+
+        vMin = XMVectorMin(vMin, P);
+        vMax = XMVectorMax(vMax, P);
     }
+    XMStoreFloat3(&m_MeshBox.Center, 0.5f*(vMin + vMax));
+    XMStoreFloat3(&m_MeshBox.Extents, 0.5f*(vMax - vMin));
 
     D3D11_BUFFER_DESC vbd;
     vbd.Usage = D3D11_USAGE_IMMUTABLE;
