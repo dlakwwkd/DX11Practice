@@ -17,7 +17,9 @@ public:
     ID3D11ShaderResourceView*   GetSRV() const          { return m_DiffuseMapSRV; }
     Material                    GetMaterial() const     { return m_Mat; }
 
-    void Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P);
+    static void InitPickedObject() { m_PickedObject = nullptr; }
+
+    void Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P, float& tmin);
     void ChangeEffectAndTech(Effect* effect, ID3DX11EffectTechnique* tech)
     {
         if (!effect || !tech) return;
@@ -40,6 +42,7 @@ protected:
     UINT                            m_IndexOffset;
     UINT                            m_IndexCount;
     UINT                            m_PickedTriangle;
+    static Object*                  m_PickedObject;
 
     std::vector<Vertex::Basic32>    m_MeshVertices;
     std::vector<UINT>               m_MeshIndices;

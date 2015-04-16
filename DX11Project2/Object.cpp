@@ -2,6 +2,7 @@
 #include "Effects.h"
 #include "RenderStates.h"
 
+Object* Object::m_PickedObject = nullptr;
 
 Object::Object()
 :   m_VertexBuffer(nullptr),
@@ -58,7 +59,7 @@ void Object::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
         m_Tech->GetPassByIndex(p)->Apply(0, context);
         context->DrawIndexed(m_IndexCount, m_IndexOffset, m_VertexOffset);
 
-        if (m_PickedTriangle != -1)
+        if (this == m_PickedObject)
         {
             context->OMSetDepthStencilState(RenderStates::LessEqualDSS, 0);
 
@@ -71,7 +72,7 @@ void Object::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
     }
 }
 
-void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P)
+void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P, float& tmin)
 {
     // Compute picking ray in view space.
     float vx = (+2.0f*sx / cw - 1.0f) / P(0, 0);
@@ -97,11 +98,13 @@ void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P)
 
     // Assume we have not picked anything yet, so init to -1.
     m_PickedTriangle = -1;
-    float tmin = 0.0f;
-     if (XNA::IntersectRayAxisAlignedBox(rayOrigin, rayDir, &m_MeshBox, &tmin))
-     {
+    float t = 0.0f;
+    if (XNA::IntersectRayAxisAlignedBox(rayOrigin, rayDir, &m_MeshBox, &t))
+    {
+        if (t > tmin)   // 현재 찾은 가장 가까운 교점보다 가깝지 않으면 검사할 필요 없음
+            return;
+
         // Find the nearest ray/triangle intersection.
-        tmin = MathHelper::Infinity;
         for (UINT i = 0; i < m_MeshIndices.size() / 3; ++i)
         {
             // Indices for this triangle.
@@ -115,7 +118,6 @@ void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P)
             XMVECTOR v2 = XMLoadFloat3(&m_MeshVertices[i2].Pos);
 
             // We have to iterate over all the triangles in order to find the nearest intersection.
-            float t = 0.0f;
             if (XNA::IntersectRayTriangle(rayOrigin, rayDir, v0, v1, v2, &t))
             {
                 if (t < tmin)
@@ -123,6 +125,7 @@ void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P)
                     // This is the new nearest picked triangle.
                     tmin = t;
                     m_PickedTriangle = i;
+                    m_PickedObject = this;
                 }
             }
         }

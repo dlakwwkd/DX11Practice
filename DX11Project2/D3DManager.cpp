@@ -95,10 +95,12 @@ void D3DManager::Update(float dt)
     auto pos = input->GetMousePos();
     auto view = m_Camera.View();
     auto proj = m_Camera.Proj();
+    auto tmin = MathHelper::Infinity;
+    Object::InitPickedObject();
     for (auto& object : m_ObjectList)
     {
         object->Update(dt);
-        object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj);
+        object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj, tmin);
     }
 }
 
