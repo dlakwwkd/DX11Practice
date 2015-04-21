@@ -48,6 +48,7 @@ private:
 
     Camera                  m_Camera;
     std::vector<Object*>    m_ObjectList;
+    std::vector<Object*>    m_BlendObjectList;
 
     DirectionalLight        m_DirLights[3];
 

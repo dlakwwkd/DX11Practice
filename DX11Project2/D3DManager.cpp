@@ -24,6 +24,7 @@ D3DManager::D3DManager()
 	m_Enable4xMsaa(false)
 {
     m_ObjectList.reserve(MAX_OBJECT_NUM);
+    m_BlendObjectList.reserve(MAX_OBJECT_NUM);
 }
 
 
@@ -63,6 +64,12 @@ void D3DManager::CleanupDevice()
         SafeDelete(object);
     }
     m_ObjectList.clear();
+    for (auto& object : m_BlendObjectList)
+    {
+        object->Release();
+        SafeDelete(object);
+    }
+    m_BlendObjectList.clear();
 
     RenderStates::DestroyAll();
     InputLayouts::DestroyAll();
@@ -102,6 +109,11 @@ void D3DManager::Update(float dt)
         object->Update(dt);
         object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj, tmin);
     }
+    for (auto& object : m_BlendObjectList)
+    {
+        object->Update(dt);
+        object->Pick(pos.x, pos.y, m_ClientWidth, m_ClientHeight, view, proj, tmin);
+    }
 }
 
 void D3DManager::Render()
@@ -119,10 +131,18 @@ void D3DManager::Render()
     Effects::BasicFX->SetFogStart(50.0f);
     Effects::BasicFX->SetFogRange(150.0f);
 
+    m_ImmediateContext->OMSetBlendState(0, 0, 0xffffffff);
     for (auto& object : m_ObjectList)
     {
         object->Render(m_ImmediateContext, viewProj);
     }
+
+    m_ImmediateContext->OMSetBlendState(RenderStates::TransparentBS, 0, 0xffffffff);
+    for (auto& object : m_BlendObjectList)
+    {
+        object->Render(m_ImmediateContext, viewProj);
+    }
+    
     HR(m_SwapChain->Present(0, 0)); // 첫번째 인자 : 갱신 딜레이
 }
 
@@ -289,10 +309,15 @@ bool D3DManager::SetObjectList()
     auto box = new Box();
     auto land = new Land();
     m_ObjectList.push_back(bv);
-    m_ObjectList.push_back(box);
     m_ObjectList.push_back(land);
+    m_BlendObjectList.push_back(box);
 
     for (auto& object : m_ObjectList)
+    {
+        if (!object->Init(m_Device))
+            return false;
+    }
+    for (auto& object : m_BlendObjectList)
     {
         if (!object->Init(m_Device))
             return false;

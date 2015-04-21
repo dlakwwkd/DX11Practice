@@ -6,6 +6,7 @@
 
 Box::Box()
 {
+    m_Mat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 0.5f);
 }
 
 
