@@ -56,8 +56,5 @@ protected:
 
     Effect*                         m_Effect;
     ID3DX11EffectTechnique*         m_Tech;
-
-    friend class ColorEffect;
-    friend class BasicEffect;
 };
 

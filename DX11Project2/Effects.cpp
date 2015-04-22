@@ -43,7 +43,7 @@ ColorEffect::~ColorEffect()
 
 void ColorEffect::UpdateCb(ID3D11DeviceContext* context, CXMMATRIX viewProj, Object* object)
 {
-    XMMATRIX world = XMLoadFloat4x4(&object->m_World);
+    XMMATRIX world = object->GetWorldMatrix();
     XMMATRIX worldViewProj = world*viewProj;
 
     SetWorldViewProj(worldViewProj);
@@ -101,16 +101,16 @@ BasicEffect::~BasicEffect()
 
 void BasicEffect::UpdateCb(ID3D11DeviceContext* context, CXMMATRIX viewProj, Object* object)
 {
-    XMMATRIX world = XMLoadFloat4x4(&object->m_World);
+    XMMATRIX world = object->GetWorldMatrix();
     XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
     XMMATRIX worldViewProj = world*viewProj;
 
     SetWorld(world);
     SetWorldInvTranspose(worldInvTranspose);
     SetWorldViewProj(worldViewProj);
-    SetTexTransform(XMLoadFloat4x4(&object->m_TexTransform));
-    SetMaterial(object->m_Mat);
-    SetDiffuseMap(object->m_DiffuseMapSRV);
+    SetTexTransform(object->GetTexTransform());
+    SetMaterial(object->GetMaterial());
+    SetDiffuseMap(object->GetSRV());
 }
 #pragma endregion
 
