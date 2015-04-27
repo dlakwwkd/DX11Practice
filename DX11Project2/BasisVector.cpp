@@ -11,12 +11,11 @@ BasisVector::~BasisVector()
 {
 }
 
-bool BasisVector::Init(ID3D11Device* device)
+void BasisVector::Init(ID3D11Device* device)
 {
     CreateBuffer(device);
     m_Effect = Effects::ColorFX;
     m_Tech = Effects::ColorFX->m_ColorTech;
-    return true;
 }
 
 void BasisVector::Release()

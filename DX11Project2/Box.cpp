@@ -14,13 +14,12 @@ Box::~Box()
 {
 }
 
-bool Box::Init(ID3D11Device* device)
+void Box::Init(ID3D11Device* device)
 {
     CreateBuffer(device);
     m_Effect = Effects::BasicFX;
     m_Tech = Effects::BasicFX->m_Light1TexTech;
     HR(D3DX11CreateShaderResourceViewFromFile(device, L"Textures/WoodCrate01.dds", 0, 0, &m_DiffuseMapSRV, 0));
-    return true;
 }
 
 void Box::Release()

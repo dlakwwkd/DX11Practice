@@ -13,7 +13,7 @@ Land::~Land()
 {
 }
 
-bool Land::Init(ID3D11Device* device)
+void Land::Init(ID3D11Device* device)
 {
     CreateBuffer(device);
     m_Effect = Effects::BasicFX;
@@ -26,7 +26,6 @@ bool Land::Init(ID3D11Device* device)
     m_Mat.Ambient = XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
     m_Mat.Diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     m_Mat.Specular = XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
-    return true;
 }
 
 void Land::Release()

@@ -6,6 +6,8 @@
 #include "BasisVector.h"
 #include "Box.h"
 #include "Land.h"
+#include "Sky.h"
+#include "Terrain.h"
 
 #define MAX_OBJECT_NUM 100
 
@@ -46,8 +48,9 @@ bool D3DManager::InitDevice(HWND hWnd)
     InputLayouts::InitAll(m_Device);
     RenderStates::InitAll(m_Device);
 
-    if (!SetObjectList())
-        return false;
+    SetSky();
+    SetTerrain();
+    SetObjectList();
 
     Resize();
     return true;
@@ -70,6 +73,9 @@ void D3DManager::CleanupDevice()
         SafeDelete(object);
     }
     m_BlendObjectList.clear();
+
+    SafeDelete(m_Terrain);
+    SafeDelete(m_Sky);
 
     RenderStates::DestroyAll();
     InputLayouts::DestroyAll();
@@ -121,6 +127,9 @@ void D3DManager::Render()
     float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; //red, green, blue, alpha
     m_ImmediateContext->ClearRenderTargetView(m_RenderTargetView, ClearColor);
     m_ImmediateContext->ClearDepthStencilView(m_DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+    m_Terrain->Draw(m_ImmediateContext, m_Camera, m_DirLights);
+    m_Sky->Draw(m_ImmediateContext, m_Camera);
 
     auto viewProj = m_Camera.ViewProj();
     auto eyePos = m_Camera.GetPosition();
@@ -339,25 +348,42 @@ void D3DManager::SetLight()
     m_DirLights[2].Direction = XMFLOAT3(0.0f, -0.707f, -0.707f);
 }
 
-bool D3DManager::SetObjectList()
+void D3DManager::SetSky()
+{
+    m_Sky = new Sky(m_Device, L"Textures/grasscube1024.dds", 5000.0f);
+}
+
+void D3DManager::SetTerrain()
+{
+    Terrain::InitInfo tii;
+    tii.HeightMapFilename = L"Textures/terrain.raw";
+    tii.LayerMapFilename0 = L"Textures/grass.dds";
+    tii.LayerMapFilename1 = L"Textures/darkdirt.dds";
+    tii.LayerMapFilename2 = L"Textures/stone.dds";
+    tii.LayerMapFilename3 = L"Textures/lightdirt.dds";
+    tii.LayerMapFilename4 = L"Textures/snow.dds";
+    tii.BlendMapFilename = L"Textures/blend.dds";
+    tii.HeightScale = 50.0f;
+    tii.HeightmapWidth = 2049;
+    tii.HeightmapHeight = 2049;
+    tii.CellSpacing = 0.5f;
+
+    m_Terrain = new Terrain();
+    m_Terrain->Init(m_Device, m_ImmediateContext, tii);
+}
+
+void D3DManager::SetObjectList()
 {
     auto bv = new BasisVector();
     auto box = new Box();
-    auto land = new Land();
+    //auto land = new Land();
     m_ObjectList.push_back(bv);
-    m_ObjectList.push_back(land);
+   // m_ObjectList.push_back(land);
     m_BlendObjectList.push_back(box);
 
     for (auto& object : m_ObjectList)
-    {
-        if (!object->Init(m_Device))
-            return false;
-    }
+        object->Init(m_Device);
     for (auto& object : m_BlendObjectList)
-    {
-        if (!object->Init(m_Device))
-            return false;
-    }
-    return true;
+        object->Init(m_Device);
 }
 

@@ -37,9 +37,6 @@
     <ClCompile Include="MathHelper.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="Box.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>Object</Filter>
     </ClCompile>
@@ -70,14 +67,23 @@
     <ClCompile Include="Effects.cpp">
       <Filter>Global</Filter>
     </ClCompile>
-    <ClCompile Include="Land.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
     <ClCompile Include="RenderStates.cpp">
       <Filter>Global</Filter>
     </ClCompile>
     <ClCompile Include="xnacollision.cpp">
       <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Box.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Land.cpp">
+      <Filter>Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Sky.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
+      <Filter>Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +94,12 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\color.fx">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\Sky.fx">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\Terrain.fx">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>
@@ -103,9 +115,6 @@
     </ClInclude>
     <ClInclude Include="d3dx11effect.h">
       <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Box.h">
-      <Filter>Object</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>Object</Filter>
@@ -137,14 +146,23 @@
     <ClInclude Include="Effects.h">
       <Filter>Global</Filter>
     </ClInclude>
-    <ClInclude Include="Land.h">
-      <Filter>Object</Filter>
-    </ClInclude>
     <ClInclude Include="RenderStates.h">
       <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="xnacollision.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Box.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Land.h">
+      <Filter>Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Sky.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Component</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

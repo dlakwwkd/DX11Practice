@@ -1,6 +1,8 @@
 #pragma once
 #include "d3dUtil.h"
 #include "Camera.h"
+class Sky;
+class Terrain;
 class Object;
 
 class D3DManager
@@ -30,7 +32,9 @@ private:
     void    CreateRenderTargetView();
     void    SetViewport();
     void    SetLight();
-    bool    SetObjectList();
+    void    SetSky();
+    void    SetTerrain();
+    void    SetObjectList();
 
 private:
     D3DManager();
@@ -47,6 +51,9 @@ private:
     ID3D11RenderTargetView* m_RenderTargetView;
 
     Camera                  m_Camera;
+
+    Sky*                    m_Sky;
+    Terrain*                m_Terrain;
     std::vector<Object*>    m_ObjectList;
     std::vector<Object*>    m_BlendObjectList;
 
