@@ -189,21 +189,7 @@ void D3DManager::CreateDeviceAndSwapChain(HWND hWnd)
     };
     UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
-    DXGI_SWAP_CHAIN_DESC sd;
-    ZeroMemory(&sd, sizeof(sd));
-    sd.BufferCount = 1;
-    sd.BufferDesc.Width = m_ClientWidth;
-    sd.BufferDesc.Height = m_ClientHeight;
-    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// 백버퍼 포맷
-    sd.BufferDesc.RefreshRate.Numerator = 60; 	        // 분자(FPS)
-    sd.BufferDesc.RefreshRate.Denominator = 1; 	        // 분모(FPS)
-    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// 백버퍼 렌더링
-    sd.OutputWindow = hWnd;		                        // 현재 윈도우
-    sd.SampleDesc.Count = 1;
-    sd.SampleDesc.Quality = 0;
-    sd.Windowed = TRUE;
-
-    HR(D3D11CreateDeviceAndSwapChain(
+    HR(D3D11CreateDevice(
         0,  		                // 기본 디스플레이 어댑터 사용
         D3D_DRIVER_TYPE_HARDWARE, 	// 3D 하드웨어 가속
         0,  		                // 소프트웨어 구동 안함
@@ -211,11 +197,53 @@ void D3DManager::CreateDeviceAndSwapChain(HWND hWnd)
         featureLevels,
         numFeatureLevels,
         D3D11_SDK_VERSION,          // SDK version
-        &sd,                        // Swap chain description
-        &m_SwapChain,
         &m_Device,
         &m_FeatureLevel,
         &m_ImmediateContext));
+
+
+    HR(m_Device->CheckMultisampleQualityLevels(
+        DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xMsaaQuality));
+    assert(m_4xMsaaQuality > 0);
+
+
+    DXGI_SWAP_CHAIN_DESC sd;
+    ZeroMemory(&sd, sizeof(sd));
+    sd.BufferDesc.Width = m_ClientWidth;
+    sd.BufferDesc.Height = m_ClientHeight;
+    sd.BufferDesc.RefreshRate.Numerator = 60; 	        // 분자(FPS)
+    sd.BufferDesc.RefreshRate.Denominator = 1; 	        // 분모(FPS)
+    sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	// 백버퍼 포맷
+    sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    if (m_Enable4xMsaa)
+    {
+        sd.SampleDesc.Count = 4;
+        sd.SampleDesc.Quality = m_4xMsaaQuality - 1;
+    }
+    else
+    {
+        sd.SampleDesc.Count = 1;
+        sd.SampleDesc.Quality = 0;
+    }
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;	// 백버퍼 렌더링
+    sd.BufferCount = 1;
+    sd.OutputWindow = hWnd;		                        // 현재 윈도우
+    sd.Windowed = TRUE;
+    sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    sd.Flags = 0;
+
+    IDXGIDevice* dxgiDevice = 0;
+    IDXGIAdapter* dxgiAdapter = 0;
+    IDXGIFactory* dxgiFactory = 0;
+    HR(m_Device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
+    HR(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter));
+    HR(dxgiAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&dxgiFactory));
+    HR(dxgiFactory->CreateSwapChain(m_Device, &sd, &m_SwapChain));
+
+    ReleaseCOM(dxgiDevice);
+    ReleaseCOM(dxgiAdapter);
+    ReleaseCOM(dxgiFactory);
 }
 
 void D3DManager::SetRenderTargets()
@@ -256,8 +284,16 @@ void D3DManager::CreateDepthStencilView()
     descDepth.MipLevels = 1;
     descDepth.ArraySize = 1;
     descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    descDepth.SampleDesc.Count = 1;
-    descDepth.SampleDesc.Quality = 0;
+    if (m_Enable4xMsaa)
+    {
+        descDepth.SampleDesc.Count = 4;
+        descDepth.SampleDesc.Quality = m_4xMsaaQuality - 1;
+    }
+    else
+    {
+        descDepth.SampleDesc.Count = 1;
+        descDepth.SampleDesc.Quality = 0;
+    }
     descDepth.Usage = D3D11_USAGE_DEFAULT;
     descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     descDepth.CPUAccessFlags = 0;

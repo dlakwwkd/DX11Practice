@@ -46,10 +46,12 @@ void BasisVector::CreateBuffer(ID3D11Device* device)
 {
     Vertex::Color vertices[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(100.0f, 0.0f, 0.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(0.0f, 100.0f, 0.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(0.0f, 0.0f, 100.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(0.0f,    0.0f,   0.0f),      XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1000.0f, 0.0f,   0.0f),      XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f,    0.0f,   0.0f),      XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f,    1000.0f,0.0f),      XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(0.0f,    0.0f,   0.0f),      XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(0.0f,    0.0f,   1000.0f),   XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
     };
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
@@ -67,8 +69,8 @@ void BasisVector::CreateBuffer(ID3D11Device* device)
     WORD indices[] =
     {
         0, 1,
-        0, 2,
-        0, 3,
+        2, 3,
+        4, 5,
     };
     m_VertexOffset = 0;
     m_IndexOffset = 0;
