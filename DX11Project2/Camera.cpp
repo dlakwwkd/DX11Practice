@@ -20,7 +20,6 @@ Camera::~Camera()
 
 void Camera::SetLens(float fovY, float aspect, float zn, float zf)
 {
-	// cache properties
 	mFovY = fovY;
 	mAspect = aspect;
 	mNearZ = zn;
@@ -113,20 +112,14 @@ void Camera::Jump(float d)
 
 void Camera::Pitch(float angle)
 {
-	// Rotate up and look vector about the right vector.
-
 	XMMATRIX R = XMMatrixRotationAxis(XMLoadFloat3(&mRight), angle);
-
 	XMStoreFloat3(&mUp,   XMVector3TransformNormal(XMLoadFloat3(&mUp), R));
 	XMStoreFloat3(&mLook, XMVector3TransformNormal(XMLoadFloat3(&mLook), R));
 }
 
 void Camera::RotateY(float angle)
 {
-	// Rotate the basis vectors about the world y-axis.
-
 	XMMATRIX R = XMMatrixRotationY(angle);
-
 	XMStoreFloat3(&mRight,   XMVector3TransformNormal(XMLoadFloat3(&mRight), R));
 	XMStoreFloat3(&mUp, XMVector3TransformNormal(XMLoadFloat3(&mUp), R));
 	XMStoreFloat3(&mLook, XMVector3TransformNormal(XMLoadFloat3(&mLook), R));
@@ -139,14 +132,10 @@ void Camera::UpdateViewMatrix()
 	XMVECTOR L = XMLoadFloat3(&mLook);
 	XMVECTOR P = XMLoadFloat3(&mPosition);
 
-	// Keep camera's axes orthogonal to each other and of unit length.
 	L = XMVector3Normalize(L);
 	U = XMVector3Normalize(XMVector3Cross(L, R));
-
-	// U, L already ortho-normal, so no need to normalize cross product.
 	R = XMVector3Cross(U, L); 
 
-	// Fill in the view matrix entries.
 	float x = -XMVectorGetX(XMVector3Dot(P, R));
 	float y = -XMVectorGetX(XMVector3Dot(P, U));
 	float z = -XMVectorGetX(XMVector3Dot(P, L));

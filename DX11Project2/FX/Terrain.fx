@@ -308,21 +308,22 @@ float4 PS(DomainOut pin,
 	//
 	
 	// Sample layers in texture array.
-	float4 c0 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 0.0f) );
-	float4 c1 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 1.0f) );
-	float4 c2 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 2.0f) );
-	float4 c3 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 3.0f) );
-	float4 c4 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 4.0f) ); 
+    //float4 c0 = gLayerMapArray.Sample(samLinear, pin.Tex);
+	//float4 c1 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 1.0f) );
+	//float4 c2 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 2.0f) );
+	//float4 c3 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 3.0f) );
+	//float4 c4 = gLayerMapArray.Sample( samLinear, float3(pin.TiledTex, 4.0f) ); 
 	
 	// Sample the blend map.
 	float4 t  = gBlendMap.Sample( samLinear, pin.Tex ); 
     
     // Blend the layers on top of each other.
-    float4 texColor = c0;
-    texColor = lerp(texColor, c1, t.r);
-    texColor = lerp(texColor, c2, t.g);
-    texColor = lerp(texColor, c3, t.b);
-    texColor = lerp(texColor, c4, t.a);
+    //float4 texColor = c0;
+    float4 texColor = t;
+    //texColor = lerp(texColor, c1, t.r);
+    //texColor = lerp(texColor, c2, t.g);
+    //texColor = lerp(texColor, c3, t.b);
+    //texColor = lerp(texColor, c4, t.a);
  
 	//
 	// Lighting.

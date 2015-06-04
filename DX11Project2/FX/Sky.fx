@@ -9,7 +9,6 @@ cbuffer cbPerFrame
 	float4x4 gWorldViewProj;
 };
  
-// Nonnumeric values cannot be added to a cbuffer.
 TextureCube gCubeMap;
 
 SamplerState samTriLinearSam
@@ -34,10 +33,7 @@ VertexOut VS(VertexIn vin)
 {
 	VertexOut vout;
 	
-	// Set z = w so that z/w = 1 (i.e., skydome always on far plane).
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj).xyww;
-	
-	// Use local vertex position as cubemap lookup vector.
 	vout.PosL = vin.PosL;
 	
 	return vout;
@@ -55,9 +51,6 @@ RasterizerState NoCull
 
 DepthStencilState LessEqualDSS
 {
-	// Make sure the depth function is LESS_EQUAL and not just LESS.  
-	// Otherwise, the normalized depth values at z = 1 (NDC) will 
-	// fail the depth test if the depth buffer was cleared to 1.
     DepthFunc = LESS_EQUAL;
 };
 

@@ -285,7 +285,6 @@ void D3DManager::CreateRenderTargetView()
 
 void D3DManager::CreateDepthStencilView()
 {
-    // Create the depth stencil texture
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
     descDepth.Width = m_ClientWidth;
@@ -356,16 +355,16 @@ void D3DManager::SetSky()
 void D3DManager::SetTerrain()
 {
     Terrain::InitInfo tii;
-    tii.HeightMapFilename = L"Textures/terrain.raw";
-    tii.LayerMapFilename0 = L"Textures/grass.dds";
-    tii.LayerMapFilename1 = L"Textures/darkdirt.dds";
-    tii.LayerMapFilename2 = L"Textures/stone.dds";
-    tii.LayerMapFilename3 = L"Textures/lightdirt.dds";
-    tii.LayerMapFilename4 = L"Textures/snow.dds";
-    tii.BlendMapFilename = L"Textures/blend.dds";
+    tii.HeightMapFilename = L"Textures/heightMap.raw";
+//     tii.LayerMapFilename0 = L"Textures/grass.dds";
+//     tii.LayerMapFilename1 = L"Textures/darkdirt.dds";
+//     tii.LayerMapFilename2 = L"Textures/stone.dds";
+//     tii.LayerMapFilename3 = L"Textures/lightdirt.dds";
+//     tii.LayerMapFilename4 = L"Textures/snow.dds";
+    tii.BlendMapFilename = L"Textures/heightMap.jpg";
     tii.HeightScale = 50.0f;
-    tii.HeightmapWidth = 2049;
-    tii.HeightmapHeight = 2049;
+    tii.HeightmapWidth = 257;
+    tii.HeightmapHeight = 257;
     tii.CellSpacing = 0.5f;
 
     m_Terrain = new Terrain();
@@ -378,7 +377,7 @@ void D3DManager::SetObjectList()
     auto box = new Box();
     //auto land = new Land();
     m_ObjectList.push_back(bv);
-   // m_ObjectList.push_back(land);
+    //m_ObjectList.push_back(land);
     m_BlendObjectList.push_back(box);
 
     for (auto& object : m_ObjectList)

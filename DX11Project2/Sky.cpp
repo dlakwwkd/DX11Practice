@@ -70,7 +70,6 @@ ID3D11ShaderResourceView* Sky::CubeMapSRV()
 
 void Sky::Draw(ID3D11DeviceContext* dc, const Camera& camera)
 {
-	// center Sky about eye in world space
 	XMFLOAT3 eyePos = camera.GetPosition();
 	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
 	XMMATRIX WVP = XMMatrixMultiply(T, camera.ViewProj());

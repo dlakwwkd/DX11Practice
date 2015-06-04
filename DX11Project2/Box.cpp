@@ -35,7 +35,7 @@ void Box::Update(float dt)
     float moveValue = cosf(t)*10.0f;
     XMMATRIX scale = XMMatrixScaling(scaleValue, scaleValue, scaleValue);
     XMMATRIX rotate = XMMatrixRotationX(t) * XMMatrixRotationY(-t) * XMMatrixRotationZ(t);
-    XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 20.0f);
+    XMMATRIX position = XMMatrixTranslation(moveValue, 20.0f, 20.0f);
     XMMATRIX world = scale * rotate * position;
     XMStoreFloat4x4(&m_World, world);
 
@@ -70,21 +70,16 @@ void Box::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
 void Box::CreateBuffer(ID3D11Device* device)
 {
     GeometryGenerator::MeshData box;
-
     GeometryGenerator geoGen;
     geoGen.CreateBox(1.0f, 1.0f, 1.0f, box);
 
-    m_VertexOffset = 0;                 // Cache the vertex offsets to each object in the concatenated vertex buffer.
-    m_IndexOffset = 0;                  // Cache the starting index for each object in the concatenated index buffer.
-    m_IndexCount = box.Indices.size();  // Cache the index count of each object.
+    m_VertexOffset = 0;
+    m_IndexOffset = 0;
+    m_IndexCount = box.Indices.size();
 
     UINT totalVertexCount = box.Vertices.size();
     UINT totalIndexCount = m_IndexCount;
 
-    //
-    // Extract the vertex elements we are interested in and pack the
-    // vertices of all the meshes into one vertex buffer.
-    //
     XMFLOAT3 vMinf3(+MathHelper::Infinity, +MathHelper::Infinity, +MathHelper::Infinity);
     XMFLOAT3 vMaxf3(-MathHelper::Infinity, -MathHelper::Infinity, -MathHelper::Infinity);
     XMVECTOR vMin = XMLoadFloat3(&vMinf3);
@@ -99,7 +94,6 @@ void Box::CreateBuffer(ID3D11Device* device)
         m_MeshVertices[k].Tex = box.Vertices[i].TexC;
 
         XMVECTOR P = XMLoadFloat3(&m_MeshVertices[i].Pos);
-
         vMin = XMVectorMin(vMin, P);
         vMax = XMVectorMax(vMax, P);
     }
@@ -116,11 +110,7 @@ void Box::CreateBuffer(ID3D11Device* device)
     vinitData.pSysMem = &m_MeshVertices[0];
     HR(device->CreateBuffer(&vbd, &vinitData, &m_VertexBuffer));
 
-    //
-    // Pack the indices of all the meshes into one index buffer.
-    //
     m_MeshIndices.insert(m_MeshIndices.end(), box.Indices.begin(), box.Indices.end());
-
     D3D11_BUFFER_DESC ibd;
     ibd.Usage = D3D11_USAGE_IMMUTABLE;
     ibd.ByteWidth = sizeof(UINT)* totalIndexCount;

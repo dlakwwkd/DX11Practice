@@ -7,6 +7,7 @@
 #include "LightHelper.h"
 #include "Effects.h"
 #include "Vertex.h"
+#include "RenderStates.h"
 #include <fstream>
 #include <sstream>
 
@@ -103,7 +104,6 @@ void Terrain::Init(ID3D11Device* device, ID3D11DeviceContext* dc, const InitInfo
 {
 	m_Info = initInfo;
 
-	// Divide heightmap into patches such that each patch has CellsPerPatch.
 	m_NumPatchVertRows = ((m_Info.HeightmapHeight-1) / CellsPerPatch) + 1;
 	m_NumPatchVertCols = ((m_Info.HeightmapWidth-1) / CellsPerPatch) + 1;
 
@@ -118,13 +118,13 @@ void Terrain::Init(ID3D11Device* device, ID3D11DeviceContext* dc, const InitInfo
 	BuildQuadPatchIB(device);
 	BuildHeightmapSRV(device);
 
-	std::vector<std::wstring> layerFilenames;
-	layerFilenames.push_back(m_Info.LayerMapFilename0);
-	layerFilenames.push_back(m_Info.LayerMapFilename1);
-	layerFilenames.push_back(m_Info.LayerMapFilename2);
-	layerFilenames.push_back(m_Info.LayerMapFilename3);
-	layerFilenames.push_back(m_Info.LayerMapFilename4);
-	m_LayerMapArraySRV = d3dHelper::CreateTexture2DArraySRV(device, dc, layerFilenames);
+// 	std::vector<std::wstring> layerFilenames;
+// 	layerFilenames.push_back(m_Info.LayerMapFilename0);
+// 	layerFilenames.push_back(m_Info.LayerMapFilename1);
+// 	layerFilenames.push_back(m_Info.LayerMapFilename2);
+// 	layerFilenames.push_back(m_Info.LayerMapFilename3);
+// 	layerFilenames.push_back(m_Info.LayerMapFilename4);
+// 	m_LayerMapArraySRV = d3dHelper::CreateTexture2DArraySRV(device, dc, layerFilenames);
 
 	HR(D3DX11CreateShaderResourceViewFromFile(device, 
 		m_Info.BlendMapFilename.c_str(), 0, 0, &m_BlendMapSRV, 0));
@@ -157,20 +157,32 @@ void Terrain::Draw(ID3D11DeviceContext* dc, const Camera& cam, DirectionalLight 
 	Effects::TerrainFX->SetFogRange(175.0f);
 	Effects::TerrainFX->SetMinDist(20.0f);
 	Effects::TerrainFX->SetMaxDist(500.0f);
-	Effects::TerrainFX->SetMinTess(0.0f);
+	Effects::TerrainFX->SetMinTess(1.0f);
 	Effects::TerrainFX->SetMaxTess(6.0f);
 	Effects::TerrainFX->SetTexelCellSpaceU(1.0f / m_Info.HeightmapWidth);
 	Effects::TerrainFX->SetTexelCellSpaceV(1.0f / m_Info.HeightmapHeight);
 	Effects::TerrainFX->SetWorldCellSpace(m_Info.CellSpacing);
 	Effects::TerrainFX->SetWorldFrustumPlanes(worldPlanes);
 	
-	Effects::TerrainFX->SetLayerMapArray(m_LayerMapArraySRV);
+	//Effects::TerrainFX->SetLayerMapArray(m_LayerMapArraySRV);
 	Effects::TerrainFX->SetBlendMap(m_BlendMapSRV);
 	Effects::TerrainFX->SetHeightMap(m_HeightMapSRV);
 
 	Effects::TerrainFX->SetMaterial(m_Mat);
 
-	ID3DX11EffectTechnique* tech = Effects::TerrainFX->m_Light1Tech;
+    ID3DX11EffectTechnique* tech = 0;
+    switch (RenderStates::m_RenderOptions)
+    {
+    case RenderOptions::Lighting:
+        tech = Effects::TerrainFX->m_Light1Tech;
+        break;
+    case RenderOptions::Textures:
+        tech = Effects::TerrainFX->m_Light3Tech;
+        break;
+    case RenderOptions::TexturesAndFog:
+        tech = Effects::TerrainFX->m_Light3FogTech;
+        break;
+    }
     D3DX11_TECHNIQUE_DESC techDesc;
     tech->GetDesc( &techDesc );
 
@@ -190,23 +202,17 @@ void Terrain::Draw(ID3D11DeviceContext* dc, const Camera& cam, DirectionalLight 
 
 void Terrain::LoadHeightmap()
 {
-	// A height for each vertex
 	std::vector<unsigned char> in( m_Info.HeightmapWidth * m_Info.HeightmapHeight );
 
-	// Open the file.
 	std::ifstream inFile;
 	inFile.open(m_Info.HeightMapFilename.c_str(), std::ios_base::binary);
 
 	if(inFile)
 	{
-		// Read the RAW bytes.
 		inFile.read((char*)&in[0], (std::streamsize)in.size());
-
-		// Done with file.
 		inFile.close();
 	}
 
-	// Copy the array data into a float array and scale it.
 	m_Heightmap.resize(m_Info.HeightmapHeight * m_Info.HeightmapWidth, 0);
 	for(UINT i = 0; i < m_Info.HeightmapHeight * m_Info.HeightmapWidth; ++i)
 	{
@@ -225,14 +231,11 @@ void Terrain::Smooth()
 			dest[i*m_Info.HeightmapWidth+j] = Average(i,j);
 		}
 	}
-
-	// Replace the old heightmap with the filtered one.
 	m_Heightmap = dest;
 }
 
 bool Terrain::InBounds(int i, int j)
 {
-	// True if ij are valid indices; false otherwise.
 	return 
 		i >= 0 && i < (int)m_Info.HeightmapHeight && 
 		j >= 0 && j < (int)m_Info.HeightmapWidth;
@@ -240,11 +243,6 @@ bool Terrain::InBounds(int i, int j)
 
 float Terrain::Average(int i, int j)
 {
-	// Function computes the average height of the ij element.
-	// It averages itself with its eight neighbor pixels.  Note
-	// that if a pixel is missing neighbor, we just don't include it
-	// in the average--that is, edge pixels don't have a neighbor pixel.
-	//
 	// ----------
 	// | 1| 2| 3|
 	// ----------
@@ -252,12 +250,9 @@ float Terrain::Average(int i, int j)
 	// ----------
 	// | 7| 8| 9|
 	// ----------
-
 	float avg = 0.0f;
 	float num = 0.0f;
 
-	// Use int to allow negatives.  If we use UINT, @ i=0, m=i-1=UINT_MAX
-	// and no iterations of the outer for loop occur.
 	for(int m = i-1; m <= i+1; ++m)
 	{
 		for(int n = j-1; n <= j+1; ++n)
@@ -269,7 +264,6 @@ float Terrain::Average(int i, int j)
 			}
 		}
 	}
-
 	return avg / num;
 }
 
@@ -277,7 +271,6 @@ void Terrain::CalcAllPatchBoundsY()
 {
 	m_PatchBoundsY.resize(m_NumPatchQuadFaces);
 
-	// For each patch
 	for(UINT i = 0; i < m_NumPatchVertRows-1; ++i)
 	{
 		for(UINT j = 0; j < m_NumPatchVertCols-1; ++j)
@@ -289,8 +282,6 @@ void Terrain::CalcAllPatchBoundsY()
 
 void Terrain::CalcPatchBoundsY(UINT i, UINT j)
 {
-	// Scan the heightmap values this patch covers and compute the min/max height.
-
 	UINT x0 = j*CellsPerPatch;
 	UINT x1 = (j+1)*CellsPerPatch;
 
@@ -331,16 +322,12 @@ void Terrain::BuildQuadPatchVB(ID3D11Device* device)
 		for(UINT j = 0; j < m_NumPatchVertCols; ++j)
 		{
 			float x = -halfWidth + j*patchWidth;
-
 			patchVertices[i*m_NumPatchVertCols+j].Pos = XMFLOAT3(x, 0.0f, z);
-
-			// Stretch texture over grid.
 			patchVertices[i*m_NumPatchVertCols+j].Tex.x = j*du;
 			patchVertices[i*m_NumPatchVertCols+j].Tex.y = i*dv;
 		}
 	}
 
-	// Store axis-aligned bounding box y-bounds in upper-left patch corner.
 	for(UINT i = 0; i < m_NumPatchVertRows-1; ++i)
 	{
 		for(UINT j = 0; j < m_NumPatchVertCols-1; ++j)
@@ -365,9 +352,8 @@ void Terrain::BuildQuadPatchVB(ID3D11Device* device)
 
 void Terrain::BuildQuadPatchIB(ID3D11Device* device)
 {
-	std::vector<USHORT> indices(m_NumPatchQuadFaces*4); // 4 indices per quad face
+	std::vector<USHORT> indices(m_NumPatchQuadFaces*4);
 
-	// Iterate over each quad and compute indices.
 	int k = 0;
 	for(UINT i = 0; i < m_NumPatchVertRows-1; ++i)
 	{
@@ -413,7 +399,6 @@ void Terrain::BuildHeightmapSRV(ID3D11Device* device)
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MiscFlags = 0;
 
-	// HALF is defined in xnamath.h, for storing 16-bit float.
 	std::vector<HALF> hmap(m_Heightmap.size());
 	std::transform(m_Heightmap.begin(), m_Heightmap.end(), hmap.begin(), XMConvertFloatToHalf);
 	
@@ -432,6 +417,5 @@ void Terrain::BuildHeightmapSRV(ID3D11Device* device)
 	srvDesc.Texture2D.MipLevels = -1;
 	HR(device->CreateShaderResourceView(hmapTex, &srvDesc, &m_HeightMapSRV));
 
-	// SRV saves reference.
 	ReleaseCOM(hmapTex);
 }

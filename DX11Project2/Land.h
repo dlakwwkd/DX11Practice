@@ -11,6 +11,7 @@ public:
     virtual void Update(float dt);
     virtual void Render(ID3D11DeviceContext* context, CXMMATRIX viewProj);
     virtual void CreateBuffer(ID3D11Device* device);
+    
 
 private:
     float       GetHillHeight(float x, float z) const { return 0.3f*(z*sinf(0.1f*x) + x*cosf(0.1f*z)); }
@@ -27,5 +28,14 @@ private:
 
         return n;
     }
+
+    void CreateBufferWithLoadHeightmap(ID3D11Device* device);
+    void LoadHeightmap();
+
+private:
+    UINT m_VertexCount;
+    UINT m_NumVertices;
+
+    std::vector<UINT> m_Heightmap;
 };
 

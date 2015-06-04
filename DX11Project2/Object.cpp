@@ -62,11 +62,9 @@ void Object::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
         if (this == m_PickedObject)
         {
             context->OMSetDepthStencilState(RenderStates::LessEqualDSS, 0);
-
             Effects::BasicFX->SetMaterial(m_PickedTriangleMat);
             m_Tech->GetPassByIndex(p)->Apply(0, context);
             context->DrawIndexed(3, 3 * m_PickedTriangle, 0);
-
             context->OMSetDepthStencilState(0, 0);
         }
     }
@@ -74,55 +72,42 @@ void Object::Render(ID3D11DeviceContext* context, CXMMATRIX viewProj)
 
 void Object::Pick(int sx, int sy, int cw, int ch, CXMMATRIX V, CXMMATRIX P, float& tmin)
 {
-    // Compute picking ray in view space.
     float vx = (+2.0f*sx / cw - 1.0f) / P(0, 0);
     float vy = (-2.0f*sy / ch + 1.0f) / P(1, 1);
 
-    // Ray definition in view space.
     XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
     XMVECTOR rayDir = XMVectorSet(vx, vy, 1.0f, 0.0f);
 
-    // Tranform ray to local space of Mesh.
-    XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(V), V);
-
     XMMATRIX W = XMLoadFloat4x4(&m_World);
+    XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(V), V);
     XMMATRIX invWorld = XMMatrixInverse(&XMMatrixDeterminant(W), W);
-
     XMMATRIX toLocal = XMMatrixMultiply(invView, invWorld);
 
     rayOrigin = XMVector3TransformCoord(rayOrigin, toLocal);
     rayDir = XMVector3TransformNormal(rayDir, toLocal);
-
-    // Make the ray direction unit length for the intersection tests.
     rayDir = XMVector3Normalize(rayDir);
 
-    // Assume we have not picked anything yet, so init to -1.
     m_PickedTriangle = -1;
     float t = 0.0f;
     if (XNA::IntersectRayAxisAlignedBox(rayOrigin, rayDir, &m_MeshBox, &t))
     {
-        if (t > tmin)   // 현재 찾은 가장 가까운 교점보다 가깝지 않으면 검사할 필요 없음
+        if (t > tmin)
             return;
 
-        // Find the nearest ray/triangle intersection.
         for (UINT i = 0; i < m_MeshIndices.size() / 3; ++i)
         {
-            // Indices for this triangle.
             UINT i0 = m_MeshIndices[i * 3 + 0];
             UINT i1 = m_MeshIndices[i * 3 + 1];
             UINT i2 = m_MeshIndices[i * 3 + 2];
 
-            // Vertices for this triangle.
             XMVECTOR v0 = XMLoadFloat3(&m_MeshVertices[i0].Pos);
             XMVECTOR v1 = XMLoadFloat3(&m_MeshVertices[i1].Pos);
             XMVECTOR v2 = XMLoadFloat3(&m_MeshVertices[i2].Pos);
 
-            // We have to iterate over all the triangles in order to find the nearest intersection.
             if (XNA::IntersectRayTriangle(rayOrigin, rayDir, v0, v1, v2, &t))
             {
                 if (t < tmin)
                 {
-                    // This is the new nearest picked triangle.
                     tmin = t;
                     m_PickedTriangle = i;
                     m_PickedObject = this;
